@@ -39,7 +39,13 @@ function produceMessage(topic, eventData) {
             topic,
             messages: [
                 {
-                    value: JSON.stringify({ "type": eventData.type, "user": eventData.user, "bot": eventData.bot, "language": eventData.server_name })
+                    value: JSON.stringify({ 
+                        "type": eventData.type,
+                        "user": eventData.user,
+                        "bot": eventData.bot,
+                        "language": eventData.server_name,
+                        "uri": eventData.meta.uri
+                    })
                 },
             ],
         })
