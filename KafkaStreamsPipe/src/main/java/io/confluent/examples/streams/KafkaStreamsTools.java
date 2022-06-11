@@ -56,11 +56,12 @@ public class KafkaStreamsTools {
 
         final KTable<Windowed<String>, Long> wordCounts = textLines
                 .groupBy((key, value) -> "1")
-                .windowedBy(TimeWindows.ofSizeWithNoGrace(windowDuration).advanceBy(Duration.ofSeconds(1)))
+                .windowedBy(TimeWindows.ofSizeWithNoGrace(windowDuration))
                 .count();
 
         // Write the `KTable<String, Long>` to the output topic.
-        wordCounts.toStream((windowedRegion, count) -> windowedRegion.toString()).to(outputTopic, Produced.with(Serdes.String(), Serdes.Long()));
+        wordCounts.toStream((windowedRegion, count) -> windowedRegion.toString())
+                .to(outputTopic, Produced.with(Serdes.String(), Serdes.Long()));
     }
 
     public void runStreams(){
