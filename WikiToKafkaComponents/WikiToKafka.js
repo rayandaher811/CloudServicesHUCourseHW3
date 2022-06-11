@@ -39,7 +39,7 @@ function produceMessage(topic, eventData) {
             topic,
             messages: [
                 {
-                    value: JSON.stringify({ "user": eventData.user, "is-bot": eventData.bot, "language": eventData.server_name })
+                    value: JSON.stringify({ "type": eventData.type, "user": eventData.user, "bot": eventData.bot, "language": eventData.server_name })
                 },
             ],
         })
@@ -60,19 +60,15 @@ eventSource.onerror = (event) => {
 };
 
 // Setting event's tunnel open times to handle the load properly
-tunnelOpen = true
 let receivedEventsCountInterval = 0
 setInterval(() => {
-    if (receivedEventsCountInterval >= 10) {
-        tunnelOpen = false
+    if (receivedEventsCountInterval >= 3) {
         receivedEventsCountInterval = 0
     }
-    else
-        tunnelOpen = true
-}, 500)
+}, 1000)
 
 eventSource.onmessage = (event) => {
-    if (!tunnelOpen) {
+    if (receivedEventsCountInterval >= 3) {
         return
     }
     receivedEventsCountInterval++;

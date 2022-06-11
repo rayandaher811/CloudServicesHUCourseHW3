@@ -6,7 +6,7 @@ const clientId = "consumer-app"
 // we can define the list of brokers in the cluster
 const brokers = ["localhost:9092"]
 // this is the topic to which we want to write messages
-const topic = "page-update"
+const topic = "page-revert-action"
 
 // initialize a new kafka client and initialize a producer from it
 const kafka = new Kafka({ clientId, brokers })
@@ -23,11 +23,13 @@ const consume = async () => {
 	await consumer.run({
 		// this function is called every time the consumer gets a new message
 		eachMessage: ({ message }) => {
-			try{// here, we just log the message to the standard output
-			//let i = JSON.parse(message.value)
-			let i = JSON.parse(message.value)
-			console.log(`received message: ${i.user}`)}
-			catch (e){
+			try {// here, we just log the message to the standard output
+				//let i = JSON.parse(message.value)
+				console.log(`received message: ${message.value[7]}`)
+				//let i = parse(message.value)
+				//console.log(`received message: ${i.user}`)
+			}
+			catch (e) {
 				console.log(`received message with error`)
 			}
 		},
