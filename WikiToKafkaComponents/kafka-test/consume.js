@@ -25,7 +25,7 @@ const consume = async () => {
 		eachMessage: ({ message }) => {
 			try {// here, we just log the message to the standard output
 				//let i = JSON.parse(message.value)
-				console.log(`received message: ${message.value[7]}`)
+				console.log(`received message: key: ${message.key.toString()} , value: ${message.value.readBigInt64BE().toString()}`)
 				//let i = parse(message.value)
 				//console.log(`received message: ${i.user}`)
 			}
