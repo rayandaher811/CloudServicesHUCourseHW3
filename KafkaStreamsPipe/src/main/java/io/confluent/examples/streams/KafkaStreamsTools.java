@@ -15,53 +15,83 @@ import java.time.Duration;
 import java.util.Properties;
 
 public class KafkaStreamsTools {
-
-    private String inputTopic;
-    private String outputTopic;
-
     private String bootstrapServers;
     private Properties streamsConfiguration;
     private StreamsBuilder builder;
+    Gson gson;
 
-    public KafkaStreamsTools(String bootstrapServers, String inputTopic,  String outputTopic){
+    public KafkaStreamsTools(String bootstrapServers){
         this.bootstrapServers = bootstrapServers;
-        this.inputTopic = inputTopic;
-        this.outputTopic = outputTopic;
-
         streamsConfiguration = getStreamsConfiguration(bootstrapServers);
+        gson = new GsonBuilder().create();
 
         // Define the processing topology of the Streams application.
         builder = new StreamsBuilder();
     }
 
-    public StreamsBuilder getStreamsBuilder() { return builder; }
-
-    public void createMessagesCountStream() {
+    public void createMessagesCountStream(String inputTopic,
+                                          String outputTopic,
+                                          final KeyValueMapper<String, WikiMessage, String> groupByFunction) {
         Gson gson = new GsonBuilder().create();
 
         final KStream<String, String> textLines = builder.stream(inputTopic);
 
         final KTable<String, Long> wordCounts = textLines
-                .groupBy((key, value) -> "1")
+                .groupBy((key, value) -> groupByFunction.apply(key,parseJsonToWikiMessage(value)))
                 .count();
 
         // Write the `KTable<String, Long>` to the output topic.
         wordCounts.toStream().to(outputTopic, Produced.with(Serdes.String(), Serdes.Long()));
     }
 
-    public void createMessagesCountStream(Duration windowDuration) {
+    public void createMessagesCountStream(String inputTopic,
+                                          String outputTopic,
+                                          final KeyValueMapper<String, WikiMessage, String> groupByFunction,
+                                          final Predicate<String, WikiMessage> filterFunction) {
         Gson gson = new GsonBuilder().create();
 
         final KStream<String, String> textLines = builder.stream(inputTopic);
 
+        final KTable<String, Long> wordCounts = textLines
+                .filter((key, value) -> {
+                    WikiMessage data = parseJsonToWikiMessage(value);
+                    if(data != null)
+                        return filterFunction.test(key, data);
+                    else
+                        return false;
+                })
+                .groupBy((key, value) -> groupByFunction.apply(key, parseJsonToWikiMessage(value)))
+                .count();
+
+        // Write the `KTable<String, Long>` to the output topic.
+        wordCounts.toStream().to(outputTopic, Produced.with(Serdes.String(), Serdes.Long()));
+    }
+
+    public void createMessagesCountStream(String inputTopic,
+                                          String outputTopic,
+                                          Duration windowDuration,
+                                          final KeyValueMapper<String, WikiMessage, String> groupByFunction) {
+
+
+        final KStream<String, String> textLines = builder.stream(inputTopic);
+
         final KTable<Windowed<String>, Long> wordCounts = textLines
-                .groupBy((key, value) -> "1")
+                .groupBy((key, value) -> groupByFunction.apply(key, parseJsonToWikiMessage(value)))
                 .windowedBy(TimeWindows.ofSizeWithNoGrace(windowDuration))
                 .count();
 
         // Write the `KTable<String, Long>` to the output topic.
         wordCounts.toStream((windowedRegion, count) -> windowedRegion.toString())
                 .to(outputTopic, Produced.with(Serdes.String(), Serdes.Long()));
+    }
+
+    WikiMessage parseJsonToWikiMessage(String json){
+        try {
+            return gson.fromJson(json, WikiMessage.class);
+        }
+        catch (Exception e){
+            return null;
+        }
     }
 
     public void runStreams(){
@@ -99,8 +129,8 @@ public class KafkaStreamsTools {
         final Properties streamsConfiguration = new Properties();
         // Give the Streams application a unique name.  The name must be unique in the Kafka cluster
         // against which the application is run.
-        streamsConfiguration.put(StreamsConfig.APPLICATION_ID_CONFIG, "my-asadsadsapp-2");
-        streamsConfiguration.put(StreamsConfig.CLIENT_ID_CONFIG, "my-cliesadsadsadnt-2");
+        streamsConfiguration.put(StreamsConfig.APPLICATION_ID_CONFIG, "my-dsadsasdasdfsdsapp-2");
+        streamsConfiguration.put(StreamsConfig.CLIENT_ID_CONFIG, "my-cliadsadasdasdssdfsdadnt-2");
         // Where to find Kafka broker(s).
         streamsConfiguration.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         // Specify default (de)serializers for record keys and for record values.
