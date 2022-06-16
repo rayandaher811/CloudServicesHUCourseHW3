@@ -18,7 +18,7 @@ public class KafkaStreamsTools {
     private String bootstrapServers;
     private Properties streamsConfiguration;
     private StreamsBuilder builder;
-    Gson gson;
+    private Gson gson;
 
     public KafkaStreamsTools(String bootstrapServers){
         this.bootstrapServers = bootstrapServers;
@@ -85,15 +85,6 @@ public class KafkaStreamsTools {
                 .to(outputTopic, Produced.with(Serdes.String(), Serdes.Long()));
     }
 
-    WikiMessage parseJsonToWikiMessage(String json){
-        try {
-            return gson.fromJson(json, WikiMessage.class);
-        }
-        catch (Exception e){
-            return null;
-        }
-    }
-
     public void runStreams(){
         final KafkaStreams streams = new KafkaStreams(builder.build(), streamsConfiguration);
 
@@ -116,6 +107,16 @@ public class KafkaStreamsTools {
         Runtime.getRuntime().addShutdownHook(new Thread(streams::close));
     }
 
+    private WikiMessage parseJsonToWikiMessage(String json){
+        try {
+            return gson.fromJson(json, WikiMessage.class);
+        }
+        catch (Exception e){
+            System.out.println("Non serialized json accepted.");
+            return null;
+        }
+    }
+
     /**
      * Configure the Streams application.
      *
@@ -129,8 +130,8 @@ public class KafkaStreamsTools {
         final Properties streamsConfiguration = new Properties();
         // Give the Streams application a unique name.  The name must be unique in the Kafka cluster
         // against which the application is run.
-        streamsConfiguration.put(StreamsConfig.APPLICATION_ID_CONFIG, "my-dsadsasdasdfsdsapp-2");
-        streamsConfiguration.put(StreamsConfig.CLIENT_ID_CONFIG, "my-cliadsadasdasdssdfsdadnt-2");
+        streamsConfiguration.put(StreamsConfig.APPLICATION_ID_CONFIG, "my-streams-3");
+        streamsConfiguration.put(StreamsConfig.CLIENT_ID_CONFIG, "my-streams-3");
         // Where to find Kafka broker(s).
         streamsConfiguration.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         // Specify default (de)serializers for record keys and for record values.

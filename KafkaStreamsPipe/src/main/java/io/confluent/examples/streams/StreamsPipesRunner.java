@@ -53,13 +53,14 @@ public class StreamsPipesRunner {
     CreateWindowedCountStreams(Duration.ofDays(30), "monthly");
 
     // Creating bots and none bots count streams
-    CreateFilteredCountStreams("bots", (key, wikiMessage)-> wikiMessage.bot);
-    CreateFilteredCountStreams("none-bots", (key, wikiMessage)-> !wikiMessage.bot);
+    CreatePermanentFilteredCountStreams("bots", (key, wikiMessage)-> wikiMessage.bot);
+    CreatePermanentFilteredCountStreams("none-bots", (key, wikiMessage)-> !wikiMessage.bot);
 
+    CreatePermanentByLanguageCountStreams("language");
     streams.runStreams();
   }
 
-  private static void CreateFilteredCountStreams(String kafkaTopicsSuffix, final Predicate<String, WikiMessage> filterFunction) {
+  private static void CreatePermanentFilteredCountStreams(String kafkaTopicsSuffix, final Predicate<String, WikiMessage> filterFunction) {
     // Windowed count topics
     final String pageUpdateCountTopic = "page-update-"+kafkaTopicsSuffix+"-count";
     final String pageCreationCountTopic = "page-creation-"+kafkaTopicsSuffix+"-count";
@@ -105,6 +106,22 @@ public class StreamsPipesRunner {
     streams.createMessagesCountStream(pageRevertActionTopic, pageRevertActionCountTopic, (key,value)->"1");
     streams.createMessagesCountStream(pageEventTopic,userActivitiesCountTopic, (key,value)-> value.user);
     streams.createMessagesCountStream(pageEventTopic, pageActivitiesCountTopic, (key,value)->value.uri);
+  }
+
+  private static void CreatePermanentByLanguageCountStreams(String kafkaTopicsSuffix) {
+    // Permanent count topics
+    final String pageUpdateCountTopic = "page-update-"+kafkaTopicsSuffix +"-count";
+    final String pageCreationCountTopic = "page-creation-"+kafkaTopicsSuffix +"-count";
+    final String pageRevertActionCountTopic = "page-revert-action-"+kafkaTopicsSuffix +"-count";
+    final String userActivitiesCountTopic = "user-activities-"+kafkaTopicsSuffix +"-count";
+    final String pageActivitiesCountTopic = "page-activities-"+kafkaTopicsSuffix +"-count";
+
+    // Permanent count streams
+    streams.createMessagesCountStream(pageUpdateTopic, pageUpdateCountTopic, (key,value)->value.language);
+    streams.createMessagesCountStream(pageCreationTopic, pageCreationCountTopic, (key,value)->value.language);
+    streams.createMessagesCountStream(pageRevertActionTopic, pageRevertActionCountTopic, (key,value)->value.language);
+    streams.createMessagesCountStream(pageEventTopic,userActivitiesCountTopic, (key,value)-> value.language + "___" + value.user);
+    streams.createMessagesCountStream(pageEventTopic, pageActivitiesCountTopic, (key,value)->value.language + "___" + value.uri);
   }
 
 }
