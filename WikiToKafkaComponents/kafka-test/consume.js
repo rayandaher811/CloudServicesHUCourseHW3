@@ -6,7 +6,6 @@ const clientId = "consumer-app"
 // we can define the list of brokers in the cluster
 const brokers = ["localhost:9092"]
 // this is the topic to which we want to write messages
-const topic = "page-revert-action"
 
 // initialize a new kafka client and initialize a producer from it
 const kafka = new Kafka({ clientId, brokers })
@@ -16,7 +15,7 @@ const kafka = new Kafka({ clientId, brokers })
 // is yet to receive
 const consumer = kafka.consumer({ groupId: clientId })
 
-const consume = async () => {
+const consume = async (topic) => {
 	// first, we wait for the client to connect and subscribe to the given topic
 	await consumer.connect()
 	await consumer.subscribe({ topic })

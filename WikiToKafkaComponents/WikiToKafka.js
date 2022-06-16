@@ -2,7 +2,7 @@
 // Delete me later
 const consume = require("./kafka-test/consume")
 // start the consumer, and log any errors
-consume().catch((err) => {
+consume("user-activities-monthly-count").catch((err) => {
     console.error("error in consumer: ", err)
 })
 //////////////////////////////////////////////
@@ -24,6 +24,7 @@ const brokers = ["localhost:9092"]
 
 // All my topic names
 const pageCreationTopic = "page-creation"
+const pageEventTopic = "page-event"
 const pageUpdateTopic = "page-update"
 const pageRevetActionTopic = "page-revert-action"
 
@@ -79,14 +80,19 @@ eventSource.onmessage = (event) => {
     }
     receivedEventsCountInterval++;
 
-    const data = JSON.parse(event.data);
+    const data = JSON.parse(event.data)
+
+    
     if (data.type === 'edit') {
+        produceMessage(pageEventTopic, data)
         produceMessage(pageUpdateTopic, data)
     }
     else if (data.type === 'new') {
+        produceMessage(pageEventTopic, data)
         produceMessage(pageCreationTopic, data)
     }
     else if (data.type === 'revert') {
+        produceMessage(pageEventTopic, data)
         produceMessage(pageRevetActionTopic, data)
     }
 
