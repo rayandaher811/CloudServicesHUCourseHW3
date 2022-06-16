@@ -2,7 +2,7 @@
 // Delete me later
 const consume = require("./kafka-test/consume")
 // start the consumer, and log any errors
-consume("user-activities-monthly-count").catch((err) => {
+consume("user-activities-language-count").catch((err) => {
     console.error("error in consumer: ", err)
 })
 //////////////////////////////////////////////
@@ -52,7 +52,7 @@ function produceMessage(topic, eventData) {
         })
 
         // if the message is written successfully
-        console.log(`A message had been written from server ${eventData.server_name}`)
+        console.log(`A message had been written from server ${eventData.server_name} and uri ${eventData.meta.uri}`)
     } catch (err) {
         console.error("could not write message " + err)
     }

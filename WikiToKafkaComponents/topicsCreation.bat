@@ -52,3 +52,10 @@ docker exec -w /bin kafka kafka-topics --create --if-not-exists --bootstrap-serv
 docker exec -w /bin kafka kafka-topics --create --if-not-exists --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1 --topic user-activities-none-bots-count
 docker exec -w /bin kafka kafka-topics --create --if-not-exists --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1 --topic page-activities-none-bots-count
 
+// languages
+docker exec -w /bin kafka kafka-topics --create --if-not-exists --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1 --topic page-creation-language-count
+docker exec -w /bin kafka kafka-topics --create --if-not-exists --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1 --topic page-update-language-count
+docker exec -w /bin kafka kafka-topics --create --if-not-exists --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1 --topic page-revert-action-language-count
+docker exec -w /bin kafka kafka-topics --create --if-not-exists --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1 --topic user-activities-language-count
+docker exec -w /bin kafka kafka-topics --create --if-not-exists --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1 --topic page-activities-language-count
+
