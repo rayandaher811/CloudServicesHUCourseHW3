@@ -20,7 +20,7 @@ const eventSource = new EventSource(url);
 const clientId = "my-app"
 
 // we can define the list of brokers in the cluster
-const brokers = ["kafka0:9092"]
+const brokers = ["localhost:9092"]
 
 // All my topic names
 const pageCreationTopic = "page-creation"

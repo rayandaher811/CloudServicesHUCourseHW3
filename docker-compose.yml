@@ -20,15 +20,19 @@ services:
       KAFKA_CLUSTERS_0_KAFKACONNECT_0_ADDRESS: http://kafka-connect0:8083
       KAFKA_CLUSTERS_0_KSQLDBSERVER: http://ksqldb:8088
   zookeeper0:
-    image: confluentinc/cp-zookeeper:5.2.4
+    image: confluentinc/cp-zookeeper:5.5.9
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
+      ZOOKEEPER_SNAPSHOT_TRUST_EMPTY: "true"
     ports:
       - 2181:2181
+    volumes:
+      - ./data/zookeeper-data:/var/lib/zookeeper/data
+      - ./data/zookeeper-logs:/var/lib/zookeeper/log
 
   kafka0:
-    image: confluentinc/cp-kafka:5.3.1
+    image: confluentinc/cp-enterprise-kafka:5.5.9
     depends_on:
       - zookeeper0
     ports:
@@ -44,8 +48,10 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KSQL_KSQL_STREAMS_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"      
       JMX_PORT: 9997
-      KAFKA_JMX_OPTS: -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=kafka0 -Dcom.sun.management.jmxremote.rmi.port=9997
+      KAFKA_JMX_OPTS: -Dcom.sun.management.j1mxremote -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=kafka0 -Dcom.sun.management.jmxremote.rmi.port=9997
 
   init-kafka:
     image: confluentinc/cp-kafka:6.1.1
