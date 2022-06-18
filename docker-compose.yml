@@ -53,6 +53,7 @@ services:
       JMX_PORT: 9997
       KAFKA_JMX_OPTS: -Dcom.sun.management.j1mxremote -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=kafka0 -Dcom.sun.management.jmxremote.rmi.port=9997
 
+
   init-kafka:
     image: confluentinc/cp-kafka:6.1.1
     depends_on:
