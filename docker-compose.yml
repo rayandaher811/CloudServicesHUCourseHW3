@@ -1,54 +1,53 @@
 ---
-version: '2'
+version: '3.5'
 services:
-  zookeeper:
-    container_name: zookeeper
-    image: confluentinc/cp-zookeeper:7.1.1
-    hostname: zookeeper
+
+  kafka-ui:
+    container_name: kafka-ui
+    image: provectuslabs/kafka-ui:latest
     ports:
-      - '32181:32181'
+      - 8080:8080
+    depends_on:
+      - zookeeper0
+      - kafka
     environment:
-      ZOOKEEPER_CLIENT_PORT: 32181
+      KAFKA_CLUSTERS_0_NAME: ef
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper0:2181
+      KAFKA_CLUSTERS_0_JMXPORT: 9997
+      KAFKA_CLUSTERS_0_SCHEMAREGISTRY: http://schemaregistry0:8085
+      KAFKA_CLUSTERS_0_KAFKACONNECT_0_NAME: first
+      KAFKA_CLUSTERS_0_KAFKACONNECT_0_ADDRESS: http://kafka-connect0:8083
+      KAFKA_CLUSTERS_0_KSQLDBSERVER: http://ksqldb:8088
+
+  zookeeper0:
+    image: confluentinc/cp-zookeeper:7.1.1
+    container_name: zookeeper0
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
-    extra_hosts:
-      - "moby:127.0.0.1"
+    ports:
+      - 2181:2181
+    volumes:
+      - ./data/zoo/log/:/var/lib/zookeeper/log/version-2
+      - ./data/zoo/data/:/var/lib/zookeeper/data/version-2
 
   kafka:
+    image: confluentinc/cp-kafka:7.1.1
     container_name: kafka
-    image: confluentinc/cp-enterprise-kafka:7.1.1
-    hostname: kafka
-    ports:
-      - '9092:9092'
-      - '29092:29092'
     depends_on:
-      - zookeeper
+      - zookeeper0
+    ports:
+      - 9092:9092
+      - 9997:9997
     environment:
       KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:32181
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper0:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka0:29092,PLAINTEXT_HOST://localhost:9092
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
-      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
-      KAFKA_METRIC_REPORTERS: io.confluent.metrics.reporter.ConfluentMetricsReporter
-      CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: kafka:29092
-      CONFLUENT_METRICS_REPORTER_ZOOKEEPER_CONNECT: zookeeper:32181
-      CONFLUENT_METRICS_REPORTER_TOPIC_REPLICAS: 1
-      CONFLUENT_METRICS_ENABLE: 'true'
-      CONFLUENT_SUPPORT_CUSTOMER_ID: 'anonymous'
-    extra_hosts:
-      - "moby:127.0.0.1"
-
-  schema-registry:
-    image: confluentinc/cp-schema-registry:7.1.1
-    hostname: schema-registry
-    depends_on:
-      - zookeeper
-      - kafka
-    ports:
-      - '8081:8081'
-    environment:
-      SCHEMA_REGISTRY_HOST_NAME: schema-registry
-      SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL: zookeeper:32181
-    extra_hosts:
-      - "moby:127.0.0.1"
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      JMX_PORT: 9997
+      KAFKA_JMX_OPTS: -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=kafka0 -Dcom.sun.management.jmxremote.rmi.port=9997
