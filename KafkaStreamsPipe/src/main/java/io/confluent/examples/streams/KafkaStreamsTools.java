@@ -1,10 +1,8 @@
 package io.confluent.examples.streams;
 
-import io.confluent.command.record.alert.CommandAlert;
 import io.confluent.common.utils.TestUtils;
 import io.confluent.shaded.com.google.gson.Gson;
 import io.confluent.shaded.com.google.gson.GsonBuilder;
-import org.apache.kafka.common.protocol.types.Field;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsBuilder;
@@ -20,7 +18,7 @@ public class KafkaStreamsTools {
     private StreamsBuilder builder;
     private Gson gson;
 
-    public KafkaStreamsTools(String bootstrapServers){
+    public KafkaStreamsTools(String bootstrapServers) {
         this.bootstrapServers = bootstrapServers;
         streamsConfiguration = getStreamsConfiguration(bootstrapServers);
         gson = new GsonBuilder().create();
@@ -37,7 +35,7 @@ public class KafkaStreamsTools {
         final KStream<String, String> textLines = builder.stream(inputTopic);
 
         final KTable<String, Long> wordCounts = textLines
-                .groupBy((key, value) -> groupByFunction.apply(key,parseJsonToWikiMessage(value)))
+                .groupBy((key, value) -> groupByFunction.apply(key, parseJsonToWikiMessage(value)))
                 .count();
 
         // Write the `KTable<String, Long>` to the output topic.
@@ -55,7 +53,7 @@ public class KafkaStreamsTools {
         final KTable<String, Long> wordCounts = textLines
                 .filter((key, value) -> {
                     WikiMessage data = parseJsonToWikiMessage(value);
-                    if(data != null)
+                    if (data != null)
                         return filterFunction.test(key, data);
                     else
                         return false;
@@ -85,7 +83,7 @@ public class KafkaStreamsTools {
                 .to(outputTopic, Produced.with(Serdes.String(), Serdes.Long()));
     }
 
-    public void runStreams(){
+    public void runStreams() {
         final KafkaStreams streams = new KafkaStreams(builder.build(), streamsConfiguration);
 
         // Always (and unconditionally) clean local state prior to starting the processing topology.
@@ -107,11 +105,10 @@ public class KafkaStreamsTools {
         Runtime.getRuntime().addShutdownHook(new Thread(streams::close));
     }
 
-    private WikiMessage parseJsonToWikiMessage(String json){
+    private WikiMessage parseJsonToWikiMessage(String json) {
         try {
             return gson.fromJson(json, WikiMessage.class);
-        }
-        catch (Exception e){
+        } catch (Exception e) {
             System.out.println("Non serialized json accepted.");
             return null;
         }
@@ -119,7 +116,7 @@ public class KafkaStreamsTools {
 
     /**
      * Configure the Streams application.
-     *
+     * <p>
      * Various Kafka Streams related settings are defined here such as the location of the target Kafka cluster to use.
      * Additionally, you could also define Kafka Producer and Kafka Consumer settings when needed.
      *
