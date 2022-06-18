@@ -11,7 +11,7 @@ services:
       - zookeeper0
       - kafka0
     environment:
-      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_NAME: hw3_cluster
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka0:29092
       KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper0:2181
       KAFKA_CLUSTERS_0_JMXPORT: 9997
@@ -34,6 +34,7 @@ services:
     ports:
       - 9092:9092
       - 9997:9997
+      - 29092:29092
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper0:2181
@@ -45,3 +46,65 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       JMX_PORT: 9997
       KAFKA_JMX_OPTS: -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=kafka0 -Dcom.sun.management.jmxremote.rmi.port=9997
+
+  init-kafka:
+    image: confluentinc/cp-kafka:6.1.1
+    depends_on:
+      - kafka0
+    entrypoint: [ '/bin/sh', '-c' ]
+    command: |
+      "
+      # blocks until kafka is reachable
+      kafka-topics --bootstrap-server kafka0:29092 --list
+
+      echo -e 'Creating kafka topics'
+      kafka-topics --bootstrap-server kafka0:29092 --create --if-not-exists --topic my-topic-1 --replication-factor 1 --partitions 1
+      kafka-topics --bootstrap-server kafka0:29092 --create --if-not-exists --topic my-topic-2 --replication-factor 1 --partitions 1
+      kafka-topics --create --if-not-exists --bootstrap-server kafka0:29092 --replication-factor 1 --partitions 1 --topic page-event
+      kafka-topics --create --if-not-exists --bootstrap-server kafka0:29092 --replication-factor 1 --partitions 1 --topic page-creation
+      kafka-topics --create --if-not-exists --bootstrap-server kafka0:29092 --replication-factor 1 --partitions 1 --topic page-update
+      kafka-topics --create --if-not-exists --bootstrap-server kafka0:29092 --replication-factor 1 --partitions 1 --topic page-revert-action
+      kafka-topics --create --if-not-exists --bootstrap-server kafka0:29092 --replication-factor 1 --partitions 1 --topic page-creation-count
+      kafka-topics --create --if-not-exists --bootstrap-server kafka0:29092 --replication-factor 1 --partitions 1 --topic page-update-count
+      kafka-topics --create --if-not-exists --bootstrap-server kafka0:29092 --replication-factor 1 --partitions 1 --topic page-revert-action-count
+      kafka-topics --create --if-not-exists --bootstrap-server kafka0:29092 --replication-factor 1 --partitions 1 --topic user-activities-count
+      kafka-topics --create --if-not-exists --bootstrap-server kafka0:29092 --replication-factor 1 --partitions 1 --topic page-activities-count
+      kafka-topics --create --if-not-exists --bootstrap-server kafka0:29092 --replication-factor 1 --partitions 1 --topic page-creation-hourly-count
+      kafka-topics --create --if-not-exists --bootstrap-server kafka0:29092 --replication-factor 1 --partitions 1 --topic page-update-hourly-count
+      kafka-topics --create --if-not-exists --bootstrap-server kafka0:29092 --replication-factor 1 --partitions 1 --topic page-revert-action-hourly-count
+      kafka-topics --create --if-not-exists --bootstrap-server kafka0:29092 --replication-factor 1 --partitions 1 --topic user-activities-hourly-count
+      kafka-topics --create --if-not-exists --bootstrap-server kafka0:29092 --replication-factor 1 --partitions 1 --topic page-activities-hourly-count
+      kafka-topics --create --if-not-exists --bootstrap-server kafka0:29092 --replication-factor 1 --partitions 1 --topic page-creation-daily-count
+      kafka-topics --create --if-not-exists --bootstrap-server kafka0:29092 --replication-factor 1 --partitions 1 --topic page-update-daily-count
+      kafka-topics --create --if-not-exists --bootstrap-server kafka0:29092 --replication-factor 1 --partitions 1 --topic page-revert-action-daily-count
+      kafka-topics --create --if-not-exists --bootstrap-server kafka0:29092 --replication-factor 1 --partitions 1 --topic user-activities-daily-count
+      kafka-topics --create --if-not-exists --bootstrap-server kafka0:29092 --replication-factor 1 --partitions 1 --topic page-activities-daily-count
+      kafka-topics --create --if-not-exists --bootstrap-server kafka0:29092 --replication-factor 1 --partitions 1 --topic page-creation-weekly-count
+      kafka-topics --create --if-not-exists --bootstrap-server kafka0:29092 --replication-factor 1 --partitions 1 --topic page-update-weekly-count
+      kafka-topics --create --if-not-exists --bootstrap-server kafka0:29092 --replication-factor 1 --partitions 1 --topic page-revert-action-weekly-count
+      kafka-topics --create --if-not-exists --bootstrap-server kafka0:29092 --replication-factor 1 --partitions 1 --topic user-activities-weekly-count
+      kafka-topics --create --if-not-exists --bootstrap-server kafka0:29092 --replication-factor 1 --partitions 1 --topic page-activities-weekly-count
+      kafka-topics --create --if-not-exists --bootstrap-server kafka0:29092 --replication-factor 1 --partitions 1 --topic page-creation-monthly-count
+      kafka-topics --create --if-not-exists --bootstrap-server kafka0:29092 --replication-factor 1 --partitions 1 --topic page-update-monthly-count
+      kafka-topics --create --if-not-exists --bootstrap-server kafka0:29092 --replication-factor 1 --partitions 1 --topic page-revert-action-monthly-count
+      kafka-topics --create --if-not-exists --bootstrap-server kafka0:29092 --replication-factor 1 --partitions 1 --topic user-activities-monthly-count
+      kafka-topics --create --if-not-exists --bootstrap-server kafka0:29092 --replication-factor 1 --partitions 1 --topic page-activities-monthly-count
+      kafka-topics --create --if-not-exists --bootstrap-server kafka0:29092 --replication-factor 1 --partitions 1 --topic page-creation-bots-count
+      kafka-topics --create --if-not-exists --bootstrap-server kafka0:29092 --replication-factor 1 --partitions 1 --topic page-update-bots-count
+      kafka-topics --create --if-not-exists --bootstrap-server kafka0:29092 --replication-factor 1 --partitions 1 --topic page-revert-action-bots-count
+      kafka-topics --create --if-not-exists --bootstrap-server kafka0:29092 --replication-factor 1 --partitions 1 --topic user-activities-bots-count
+      kafka-topics --create --if-not-exists --bootstrap-server kafka0:29092 --replication-factor 1 --partitions 1 --topic page-activities-bots-count
+      kafka-topics --create --if-not-exists --bootstrap-server kafka0:29092 --replication-factor 1 --partitions 1 --topic page-creation-none-bots-count
+      kafka-topics --create --if-not-exists --bootstrap-server kafka0:29092 --replication-factor 1 --partitions 1 --topic page-update-none-bots-count
+      kafka-topics --create --if-not-exists --bootstrap-server kafka0:29092 --replication-factor 1 --partitions 1 --topic page-revert-action-none-bots-count
+      kafka-topics --create --if-not-exists --bootstrap-server kafka0:29092 --replication-factor 1 --partitions 1 --topic user-activities-none-bots-count
+      kafka-topics --create --if-not-exists --bootstrap-server kafka0:29092 --replication-factor 1 --partitions 1 --topic page-activities-none-bots-count
+      kafka-topics --create --if-not-exists --bootstrap-server kafka0:29092 --replication-factor 1 --partitions 1 --topic page-creation-language-count
+      kafka-topics --create --if-not-exists --bootstrap-server kafka0:29092 --replication-factor 1 --partitions 1 --topic page-update-language-count
+      kafka-topics --create --if-not-exists --bootstrap-server kafka0:29092 --replication-factor 1 --partitions 1 --topic page-revert-action-language-count
+      kafka-topics --create --if-not-exists --bootstrap-server kafka0:29092 --replication-factor 1 --partitions 1 --topic user-activities-language-count
+      kafka-topics --create --if-not-exists --bootstrap-server kafka0:29092 --replication-factor 1 --partitions 1 --topic page-activities-language-count
+
+      echo -e 'Successfully created the following topics:'
+      kafka-topics --bootstrap-server kafka0:29092 --list
+      "
