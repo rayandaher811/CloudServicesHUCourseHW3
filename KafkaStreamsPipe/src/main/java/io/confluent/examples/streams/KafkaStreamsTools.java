@@ -5,6 +5,7 @@ import io.confluent.shaded.com.google.gson.Gson;
 import io.confluent.shaded.com.google.gson.GsonBuilder;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.KafkaStreams;
+import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.kstream.*;
@@ -81,6 +82,114 @@ public class KafkaStreamsTools {
         // Write the `KTable<String, Long>` to the output topic.
         wordCounts.toStream((windowedRegion, count) -> windowedRegion.toString())
                 .to(outputTopic, Produced.with(Serdes.String(), Serdes.Long()));
+    }
+
+    public void createTopMessagesCountStream(String inputTopic,
+                                             String outputTopic,
+                                             final KeyValueMapper<String, WikiMessage, String> groupByFunction,
+                                             final Predicate<String, WikiMessage> filterFunction) {
+        Gson gson = new GsonBuilder().create();
+
+        final KStream<String, String> textLines = builder.stream(inputTopic);
+
+        final KTable<String, Long> wordCounts = textLines
+                .filter((key, value) -> {
+                    WikiMessage data = parseJsonToWikiMessage(value);
+                    if (data != null)
+                        return filterFunction.test(key, data);
+                    else
+                        return false;
+                })
+                .groupBy((key, value) -> groupByFunction.apply(key, parseJsonToWikiMessage(value)))
+                .count();
+
+        wordCounts.groupBy((s, aLong) -> KeyValue.pair("top", new StringEntry(s, aLong)),
+                        Grouped.with(Serdes.String(), StringEntry.serde()))
+                .aggregate(TopEntries::new, (s, entry, topEntries) -> {
+                    topEntries.add(entry);
+                    return topEntries;
+                }, (s, entry, topEntries) -> {
+                    topEntries.remove(entry);
+                    return topEntries;
+                }, Materialized.with(Serdes.String(), new TopEntriesSerDe()))
+                .toStream()
+                .to(outputTopic, Produced.with(Serdes.String(), new TopEntriesSerDe()));
+    }
+
+    public void createTopMessagesCountStream(String inputTopic,
+                                             String outputTopic,
+                                             final KeyValueMapper<String, WikiMessage, String> groupByFunction) {
+
+
+        final KStream<String, String> textLines = builder.stream(inputTopic);
+
+        final KTable<String, Long> wordCounts = textLines
+                .groupBy((key, value) -> groupByFunction.apply(key, parseJsonToWikiMessage(value)))
+                .count();
+
+        // Write the `KTable<String, Long>` to the output topic.
+        wordCounts.groupBy((s, aLong) -> KeyValue.pair("top", new StringEntry(s, aLong)),
+                        Grouped.with(Serdes.String(), StringEntry.serde()))
+                .aggregate(TopEntries::new, (s, entry, topEntries) -> {
+                    topEntries.add(entry);
+                    return topEntries;
+                }, (s, entry, topEntries) -> {
+                    topEntries.remove(entry);
+                    return topEntries;
+                }, Materialized.with(Serdes.String(), new TopEntriesSerDe()))
+                .toStream()
+                .to(outputTopic, Produced.with(Serdes.String(), new TopEntriesSerDe()));
+    }
+
+    public void createTopMessagesCountStreamWithTitle(String inputTopic,
+                                             String outputTopic,
+                                             final KeyValueMapper<String, WikiMessage, String> groupByFunction) {
+
+        final KStream<String, String> textLines = builder.stream(inputTopic);
+
+        final KTable<String, Long> wordCounts = textLines
+                .groupBy((key, value) -> groupByFunction.apply(key, parseJsonToWikiMessage(value)))
+                .count();
+
+        // Write the `KTable<String, Long>` to the output topic.
+        wordCounts.groupBy((s, aLong) -> KeyValue.pair("top", new StringEntry(s, aLong)),
+                        Grouped.with(Serdes.String(), StringEntry.serde()))
+                .aggregate(TopEntries::new, (s, entry, topEntries) -> {
+                    topEntries.add(entry);
+                    return topEntries;
+                }, (s, entry, topEntries) -> {
+                    topEntries.remove(entry);
+                    return topEntries;
+                }, Materialized.with(Serdes.String(), new TopEntriesSerDe()))
+                .toStream()
+                .to(outputTopic, Produced.with(Serdes.String(), new TopEntriesSerDe()));
+    }
+
+    public void createTopMessagesCountStream(String inputTopic,
+                                             String outputTopic,
+                                             Duration windowDuration,
+                                             final KeyValueMapper<String, WikiMessage, String> groupByFunction) {
+
+
+        final KStream<String, String> textLines = builder.stream(inputTopic);
+
+        final KTable<Windowed<String>, Long> wordCounts = textLines
+                .groupBy((key, value) -> groupByFunction.apply(key, parseJsonToWikiMessage(value)))
+                .windowedBy(TimeWindows.ofSizeWithNoGrace(windowDuration))
+                .count();
+
+        // Write the `KTable<String, Long>` to the output topic.
+        wordCounts.groupBy((s, aLong) -> KeyValue.pair("top", new StringEntry(s.key(), aLong)),
+                        Grouped.with(Serdes.String(), StringEntry.serde()))
+                .aggregate(TopEntries::new, (s, entry, topEntries) -> {
+                    topEntries.add(entry);
+                    return topEntries;
+                }, (s, entry, topEntries) -> {
+                    topEntries.remove(entry);
+                    return topEntries;
+                }, Materialized.with(Serdes.String(), new TopEntriesSerDe()))
+                .toStream()
+                .to(outputTopic, Produced.with(Serdes.String(), new TopEntriesSerDe()));
     }
 
     public void runStreams() {
