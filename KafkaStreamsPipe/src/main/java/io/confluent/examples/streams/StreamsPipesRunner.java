@@ -105,7 +105,7 @@ public class StreamsPipesRunner {
         streams.createMessagesCountStream(pageUpdateTopic, pageUpdateCountTopic, (key, value) -> value.language);
         streams.createMessagesCountStream(pageCreationTopic, pageCreationCountTopic, (key, value) -> value.language);
         streams.createMessagesCountStream(pageRevertActionTopic, pageRevertActionCountTopic, (key, value) -> value.language);
-        streams.createTopMessagesCountStream(pageEventTopic, userActivitiesCountTopic, (key, value) -> value.language + "___" + value.user);
-        streams.createTopMessagesCountStream(pageEventTopic, pageActivitiesCountTopic, (key, value) -> value.language + "___" + value.uri);
+        streams.createTopMessagesCountStreamWithTitle(pageEventTopic, userActivitiesCountTopic, wikiMessage -> wikiMessage.language, wikiMessage -> wikiMessage.user);
+        streams.createTopMessagesCountStreamWithTitle(pageEventTopic, pageActivitiesCountTopic, wikiMessage -> wikiMessage.language, wikiMessage -> wikiMessage.uri);
     }
 }

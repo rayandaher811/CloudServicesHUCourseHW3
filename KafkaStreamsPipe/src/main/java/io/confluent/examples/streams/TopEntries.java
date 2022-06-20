@@ -6,8 +6,8 @@ import java.util.Collections;
 import java.util.List;
 
 public class TopEntries implements Serializable {
-    private final String title;
     private final List<StringEntry> sortedEntries;
+    public String title;
 
     public TopEntries() {
         sortedEntries = new ArrayList<>();
