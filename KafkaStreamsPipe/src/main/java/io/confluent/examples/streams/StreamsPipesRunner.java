@@ -57,8 +57,8 @@ public class StreamsPipesRunner {
         streams.createMessagesCountStream(pageUpdateTopic, pageUpdateCountTopic, (key, value) -> "1", filterFunction);
         streams.createMessagesCountStream(pageCreationTopic, pageCreationCountTopic, (key, value) -> "1", filterFunction);
         streams.createMessagesCountStream(pageRevertActionTopic, pageRevertActionCountTopic, (key, value) -> "1", filterFunction);
-        streams.createMessagesCountStream(pageEventTopic, userActivitiesCountTopic, (key, value) -> value.user, filterFunction);
-        streams.createMessagesCountStream(pageEventTopic, pageActivitiesCountTopic, (key, value) -> value.uri, filterFunction);
+        streams.createTopMessagesCountStream(pageEventTopic, userActivitiesCountTopic, (key, value) -> value.user, filterFunction);
+        streams.createTopMessagesCountStream(pageEventTopic, pageActivitiesCountTopic, (key, value) -> value.uri, filterFunction);
     }
 
     private static void CreateWindowedCountStreams(Duration windowDuration, String kafkaTopicsSuffix) {
@@ -73,8 +73,8 @@ public class StreamsPipesRunner {
         streams.createMessagesCountStream(pageUpdateTopic, pageUpdateCountTopic, windowDuration, (key, value) -> "1");
         streams.createMessagesCountStream(pageCreationTopic, pageCreationCountTopic, windowDuration, (key, value) -> "1");
         streams.createMessagesCountStream(pageRevertActionTopic, pageRevertActionCountTopic, windowDuration, (key, value) -> "1");
-        streams.createMessagesCountStream(pageEventTopic, userActivitiesCountTopic, windowDuration, (key, value) -> value.user);
-        streams.createMessagesCountStream(pageEventTopic, pageActivitiesCountTopic, windowDuration, (key, value) -> value.uri);
+        streams.createTopMessagesCountStream(pageEventTopic, userActivitiesCountTopic, windowDuration, (key, value) -> value.user);
+        streams.createTopMessagesCountStream(pageEventTopic, pageActivitiesCountTopic, windowDuration, (key, value) -> value.uri);
     }
 
     private static void CreatePermanentCountStreams() {
@@ -89,8 +89,8 @@ public class StreamsPipesRunner {
         streams.createMessagesCountStream(pageUpdateTopic, pageUpdateCountTopic, (key, value) -> "1");
         streams.createMessagesCountStream(pageCreationTopic, pageCreationCountTopic, (key, value) -> "1");
         streams.createMessagesCountStream(pageRevertActionTopic, pageRevertActionCountTopic, (key, value) -> "1");
-        streams.createMessagesCountStream(pageEventTopic, userActivitiesCountTopic, (key, value) -> value.user);
-        streams.createMessagesCountStream(pageEventTopic, pageActivitiesCountTopic, (key, value) -> value.uri);
+        streams.createTopMessagesCountStream(pageEventTopic, userActivitiesCountTopic, (key, value) -> value.user);
+        streams.createTopMessagesCountStream(pageEventTopic, pageActivitiesCountTopic, (key, value) -> value.uri);
     }
 
     private static void CreatePermanentByLanguageCountStreams(String kafkaTopicsSuffix) {
@@ -105,8 +105,7 @@ public class StreamsPipesRunner {
         streams.createMessagesCountStream(pageUpdateTopic, pageUpdateCountTopic, (key, value) -> value.language);
         streams.createMessagesCountStream(pageCreationTopic, pageCreationCountTopic, (key, value) -> value.language);
         streams.createMessagesCountStream(pageRevertActionTopic, pageRevertActionCountTopic, (key, value) -> value.language);
-        streams.createMessagesCountStream(pageEventTopic, userActivitiesCountTopic, (key, value) -> value.language + "___" + value.user);
-        streams.createMessagesCountStream(pageEventTopic, pageActivitiesCountTopic, (key, value) -> value.language + "___" + value.uri);
+        streams.createTopMessagesCountStreamWithTitle(pageEventTopic, userActivitiesCountTopic, wikiMessage -> wikiMessage.language, wikiMessage -> wikiMessage.user);
+        streams.createTopMessagesCountStreamWithTitle(pageEventTopic, pageActivitiesCountTopic, wikiMessage -> wikiMessage.language, wikiMessage -> wikiMessage.uri);
     }
-
 }
