@@ -2,7 +2,6 @@ package io.confluent.examples.streams;
 
 import io.confluent.common.utils.TestUtils;
 import io.confluent.shaded.com.google.gson.Gson;
-import io.confluent.shaded.com.google.gson.GsonBuilder;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.KeyValue;
@@ -15,25 +14,18 @@ import java.util.Properties;
 import java.util.function.Function;
 
 public class KafkaStreamsTools {
-    private String bootstrapServers;
-    private Properties streamsConfiguration;
-    private StreamsBuilder builder;
-    private Gson gson;
+    private static final Gson GSON = new Gson();
+    private final Properties streamsConfiguration;
+    private final StreamsBuilder builder;
 
     public KafkaStreamsTools(String bootstrapServers) {
-        this.bootstrapServers = bootstrapServers;
         streamsConfiguration = getStreamsConfiguration(bootstrapServers);
-        gson = new GsonBuilder().create();
-
-        // Define the processing topology of the Streams application.
         builder = new StreamsBuilder();
     }
 
     public void createMessagesCountStream(String inputTopic,
                                           String outputTopic,
                                           final KeyValueMapper<String, WikiMessage, String> groupByFunction) {
-        Gson gson = new GsonBuilder().create();
-
         final KStream<String, String> textLines = builder.stream(inputTopic);
 
         final KTable<String, Long> wordCounts = textLines
@@ -48,8 +40,6 @@ public class KafkaStreamsTools {
                                           String outputTopic,
                                           final KeyValueMapper<String, WikiMessage, String> groupByFunction,
                                           final Predicate<String, WikiMessage> filterFunction) {
-        Gson gson = new GsonBuilder().create();
-
         final KStream<String, String> textLines = builder.stream(inputTopic);
 
         final KTable<String, Long> wordCounts = textLines
@@ -80,7 +70,6 @@ public class KafkaStreamsTools {
                 .windowedBy(TimeWindows.ofSizeWithNoGrace(windowDuration))
                 .count();
 
-        // Write the `KTable<String, Long>` to the output topic.
         wordCounts.toStream((windowedRegion, count) -> windowedRegion.toString())
                 .to(outputTopic, Produced.with(Serdes.String(), Serdes.Long()));
     }
@@ -89,8 +78,6 @@ public class KafkaStreamsTools {
                                              String outputTopic,
                                              final KeyValueMapper<String, WikiMessage, String> groupByFunction,
                                              final Predicate<String, WikiMessage> filterFunction) {
-        Gson gson = new GsonBuilder().create();
-
         final KStream<String, String> textLines = builder.stream(inputTopic);
 
         final KTable<String, Long> wordCounts = textLines
@@ -104,17 +91,7 @@ public class KafkaStreamsTools {
                 .groupBy((key, value) -> groupByFunction.apply(key, parseJsonToWikiMessage(value)))
                 .count();
 
-        wordCounts.groupBy((s, aLong) -> KeyValue.pair("top", new StringEntry(s, aLong)),
-                        Grouped.with(Serdes.String(), StringEntry.serde()))
-                .aggregate(TopEntries::new, (s, entry, topEntries) -> {
-                    topEntries.add(entry);
-                    return topEntries;
-                }, (s, entry, topEntries) -> {
-                    topEntries.remove(entry);
-                    return topEntries;
-                }, Materialized.with(Serdes.String(), new TopEntriesSerDe()))
-                .toStream()
-                .to(outputTopic, Produced.with(Serdes.String(), new TopEntriesSerDe()));
+        aggregateToTopEntries(wordCounts, outputTopic);
     }
 
     public void createTopMessagesCountStream(String inputTopic,
@@ -128,9 +105,12 @@ public class KafkaStreamsTools {
                 .groupBy((key, value) -> groupByFunction.apply(key, parseJsonToWikiMessage(value)))
                 .count();
 
-        // Write the `KTable<String, Long>` to the output topic.
-        wordCounts.groupBy((s, aLong) -> KeyValue.pair("top", new StringEntry(s, aLong)),
-                        Grouped.with(Serdes.String(), StringEntry.serde()))
+        aggregateToTopEntries(wordCounts, outputTopic);
+    }
+
+    private void aggregateToTopEntries(KTable<String, Long> wordCounts, String outputTopic) {
+        wordCounts.groupBy((s, aLong) -> KeyValue.pair("top", new StringAmountEntry(s, aLong)),
+                        Grouped.with(Serdes.String(), StringAmountEntry.serde()))
                 .aggregate(TopEntries::new, (s, entry, topEntries) -> {
                     topEntries.add(entry);
                     return topEntries;
@@ -156,8 +136,8 @@ public class KafkaStreamsTools {
                 .count();
 
         // Write the `KTable<String, Long>` to the output topic.
-        wordCounts.groupBy((s, aLong) -> KeyValue.pair("top", new StringEntry(s.key(), aLong)),
-                        Grouped.with(Serdes.String(), StringEntry.serde()))
+        wordCounts.groupBy((s, aLong) -> KeyValue.pair("top", new StringAmountEntry(s.key(), aLong)),
+                        Grouped.with(Serdes.String(), StringAmountEntry.serde()))
                 .aggregate(TopEntries::new, (s, entry, topEntries) -> {
                     topEntries.add(entry);
                     return topEntries;
@@ -181,8 +161,8 @@ public class KafkaStreamsTools {
                         Grouped.keySerde(StringPair.serde()))
                 .count();
 
-        wordCounts.groupBy((countedPair, aLong) -> KeyValue.pair(countedPair.left, new StringEntry(countedPair.right, aLong)),
-                        Grouped.with(Serdes.String(), StringEntry.serde()))
+        wordCounts.groupBy((countedPair, aLong) -> KeyValue.pair(countedPair.left, new StringAmountEntry(countedPair.right, aLong)),
+                        Grouped.with(Serdes.String(), StringAmountEntry.serde()))
                 .aggregate(TopEntries::new, (s, entry, topEntries) -> {
                     topEntries.title = s;
                     topEntries.add(entry);
@@ -198,28 +178,14 @@ public class KafkaStreamsTools {
     public void runStreams() {
         final KafkaStreams streams = new KafkaStreams(builder.build(), streamsConfiguration);
 
-        // Always (and unconditionally) clean local state prior to starting the processing topology.
-        // We opt for this unconditional call here because this will make it easier for you to play around with the example
-        // when resetting the application for doing a re-run (via the Application Reset Tool,
-        // https://docs.confluent.io/platform/current/streams/developer-guide/app-reset-tool.html).
-        //
-        // The drawback of cleaning up local state prior is that your app must rebuilt its local state from scratch, which
-        // will take time and will require reading all the state-relevant data from the Kafka cluster over the network.
-        // Thus in a production scenario you typically do not want to clean up always as we do here but rather only when it
-        // is truly needed, i.e., only under certain conditions (e.g., the presence of a command line flag for your app).
-        // See `ApplicationResetExample.java` for a production-like example.
-        streams.cleanUp();
-
-        // Now run the processing topology via `start()` to begin processing its input data.
         streams.start();
 
-        // Add shutdown hook to respond to SIGTERM and gracefully close the Streams application.
         Runtime.getRuntime().addShutdownHook(new Thread(streams::close));
     }
 
     private WikiMessage parseJsonToWikiMessage(String json) {
         try {
-            return gson.fromJson(json, WikiMessage.class);
+            return GSON.fromJson(json, WikiMessage.class);
         } catch (Exception e) {
             System.out.println("Non serialized json accepted.");
             return null;
