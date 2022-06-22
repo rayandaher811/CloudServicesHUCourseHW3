@@ -1,37 +1,35 @@
 package org.bg.test;
 
-import java.util.Collections;
-import java.util.Comparator;
+import com.google.gson.Gson;
+
 import java.util.HashMap;
-import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class TopicStatus {
     private String query;
     private Long counter;
+    private static final Gson GSON = new Gson();
 
-    private HashMap<String, Long> userToValue;
+    private HashMap<String, Long> keyValueMapper;
 
 
     public TopicStatus(String query) {
         this.query = query;
         this.counter = Long.valueOf(0);
-        this.userToValue = new HashMap<>();
+        this.keyValueMapper = new HashMap<>();
     }
 
     public void setCounter(Long counter) {
         this.counter = counter;
     }
 
-    public void addResult(String key, Long value) {
-        if (userToValue.containsKey(key) || userToValue.size() < 10) {
-            userToValue.put(key, value);
-        } else {
-            Map.Entry<String, Long> min = Collections.min(userToValue.entrySet(),
-                    Comparator.comparing(Map.Entry::getValue));
-            if (value > min.getValue()) {
-                userToValue.remove(min.getKey(), min.getValue());
-                userToValue.put(key, value);
-            }
+    public void addResult(String key, String value) {
+        TopEntries consumedTopEntries = GSON.fromJson(value, TopEntries.class);
+        synchronized (keyValueMapper) {
+            keyValueMapper.clear();
+            consumedTopEntries.getSortedEntries().forEach(stringAmountEntry -> {
+                keyValueMapper.put(stringAmountEntry.string, stringAmountEntry.amount);
+            });
         }
     }
 
@@ -39,7 +37,21 @@ public class TopicStatus {
         return counter;
     }
 
-    public HashMap<String, Long> getUserToValue() {
-        return userToValue;
+    public HashMap<String, Long> getKeyValueMapper() {
+        return keyValueMapper;
+    }
+
+    @Override
+    public String toString() {
+        AtomicReference<String> valueToPrint = new AtomicReference<>("Query Status {\n" +
+                "query='" + query + '\'');
+        synchronized (keyValueMapper) {
+            keyValueMapper.forEach((s, aLong) -> {
+                valueToPrint.getAndSet(valueToPrint.get() + "Key: " + s + ", value: " + aLong + "\n");
+            });
+        }
+        valueToPrint.getAndSet(valueToPrint.get() + "}");
+
+        return valueToPrint.get();
     }
 }

@@ -8,7 +8,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
@@ -24,7 +23,6 @@ public class BasicConsumeLoop<K extends Serializable, V extends Serializable> im
 
     private CountDownLatch shutdownLatch = new CountDownLatch(1);
     private ConcurrentHashMap<String, TopicStatus> topicsToStatus;
-
 
     public BasicConsumeLoop(Properties configs, List<String> topics, ConcurrentHashMap<String, TopicStatus> topicsToStatus) {
         this.clientId = configs.getProperty(ConsumerConfig.CLIENT_ID_CONFIG);
@@ -53,10 +51,10 @@ public class BasicConsumeLoop<K extends Serializable, V extends Serializable> im
             consumer.subscribe(topics, listener);
 
             logger.info("C : {}, Started to process records", clientId);
-            while(true) {
+            while (true) {
                 ConsumerRecords<K, V> records = consumer.poll(Long.MAX_VALUE);
 
-                if(records.isEmpty()) {
+                if (records.isEmpty()) {
                     logger.info("C : {}, Found no records", clientId);
                     continue;
                 }
@@ -66,22 +64,25 @@ public class BasicConsumeLoop<K extends Serializable, V extends Serializable> im
                     logger.info("C : {}, Record received partition : {}, key : {}, value : {}, offset : {}",
                             clientId, record.partition(), record.key(), record.value(), record.offset());
                     if (record.topic().equals("page-creation-count") ||
-                        record.topic().equals("page-update-count") ||
-                        record.topic().equals("page-revert-action-count")) {
-                            if (topicsToStatus.containsKey(record.topic())) {
-                                topicsToStatus.get(record.topic()).setCounter((Long) record.value());
-                            } else {
-                                System.out.println("BG error!!");
-                                System.out.println("Received message: (" + record.key() + ", " + record.value() + ") at offset " + record.offset());
-                            }
-                        } else if (record.topic().equals("user-activities-count") || record.topic().equals("page-activities-count")) {
-                            if (topicsToStatus.containsKey(record.topic())) {
-                                topicsToStatus.get(record.topic()).addResult((String) record.key(), (Long) record.value());
-                            } else {
-                                System.out.println("BG error!!");
-                                System.out.println("Received message: (" + record.key() + ", " + record.value() + ") at offset " + record.offset());
-                            }
+                            record.topic().equals("page-revert-action-count") ||
+                            record.topic().equals("page-update-count")) {
+                        if (topicsToStatus.containsKey(record.topic())) {
+                            topicsToStatus.get(record.topic()).setCounter((Long) record.value());
+                        } else {
+                            System.out.println("BG error!!");
+                            System.out.println("Received message: (" + record.key() + ", " + record.value() + ") at offset " + record.offset());
                         }
+                    } else if (
+                            record.topic().equals("user-activities-count")
+                            || record.topic().equals("page-activities-count")
+                                ) {
+                        if (topicsToStatus.containsKey(record.topic())) {
+                            topicsToStatus.get(record.topic()).addResult(record.topic(), (String) record.value());
+                        } else {
+                            System.out.println("BG error!!");
+                            System.out.println("Received message: (" + record.key() + ", " + record.value() + ") at offset " + record.offset());
+                        }
+                    }
                     sleep(50);
                 }
 
@@ -115,7 +116,7 @@ public class BasicConsumeLoop<K extends Serializable, V extends Serializable> im
         }
     }
 
-    public static Properties basicConsumerLoopConfig() {
+    public static Properties stringStringConsumerConfig() {
         Properties props = new Properties();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost" + ":" + "9092");
         props.put(ConsumerConfig.GROUP_ID_CONFIG, "2");
@@ -123,8 +124,19 @@ public class BasicConsumeLoop<K extends Serializable, V extends Serializable> im
         props.put(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, "1000");
         props.put(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, "30000");
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringDeserializer");
-        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.LongDeserializer");
+        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringDeserializer");
         return props;
     }
 
+    public static Properties stringLongConsumerConfig() {
+        Properties props = new Properties();
+        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost" + ":" + "9092");
+        props.put(ConsumerConfig.GROUP_ID_CONFIG, "5");
+        props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "true");
+        props.put(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, "1000");
+        props.put(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, "30000");
+        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringDeserializer");
+        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.LongDeserializer");
+        return props;
+    }
 }
