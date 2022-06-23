@@ -10,10 +10,6 @@ consume("user-activities-language-count").catch((err) => {
 const EventSource = require('eventsource');
 const { Kafka } = require("kafkajs")
 
-// Wiki event stream registeration
-const url = 'https://stream.wikimedia.org/v2/stream/recentchange';
-const eventSource = new EventSource(url);
-
 // import the `Kafka` instance from the kafkajs library
 
 // the client ID lets kafka know who's producing the messages
@@ -33,30 +29,36 @@ kafkaInstance = new Kafka({ clientId, brokers })
 producer = kafkaInstance.producer()
 producer.connect()
 
-function produceMessage(topic, eventData) {
+function produceMessage(topic, domain, user, bot, uri) {
     try {
+        var language = domain.split(".")[0]
+        if(language === "commons" || language === "www" || language === "meta")
+            language = "common"
         // send a message to the inserted topic with
         producer.send({
             topic,
             messages: [
                 {
                     value: JSON.stringify({ 
-                        "type": eventData.type,
-                        "user": eventData.user,
-                        "bot": eventData.bot,
-                        "language": eventData.server_name,
-                        "uri": eventData.meta.uri
+                        "user": user,
+                        "bot": bot,
+                        "language": language,
+                        "uri": uri
                     })
                 },
             ],
         })
 
         // if the message is written successfully
-        console.log(`A message had been written from server ${eventData.server_name} and uri ${eventData.meta.uri}`)
+        console.log(`A message had been written from server ${domain} and uri ${uri}`)
     } catch (err) {
         console.error("could not write message " + err)
     }
 }
+
+
+// Wiki event stream registeration
+const eventSource = new EventSource('https://stream.wikimedia.org/v2/stream/recentchange');
 
 eventSource.onopen = () => {
     console.info('Opened connection.');
@@ -83,16 +85,16 @@ eventSource.onmessage = (event) => {
     const data = JSON.parse(event.data)
 
     if (data.type === 'edit') {
-        produceMessage(pageEventTopic, data)
-        produceMessage(pageUpdateTopic, data)
+        produceMessage(pageEventTopic, data.meta.domain, data.user, data.bot, data.meta.uri)
+        produceMessage(pageUpdateTopic, data.meta.domain, data.user, data.bot, data.meta.uri)
     }
     else if (data.type === 'new') {
-        produceMessage(pageEventTopic, data)
-        produceMessage(pageCreationTopic, data)
+        produceMessage(pageEventTopic, data.meta.domain, data.user, data.bot, data.meta.uri)
+        produceMessage(pageCreationTopic, data.meta.domain, data.user, data.bot, data.meta.uri)
     }
     else if (data.type === 'revert') {
-        produceMessage(pageEventTopic, data)
-        produceMessage(pageRevetActionTopic, data)
+        produceMessage(pageEventTopic, data.meta.domain, data.user, data.bot, data.meta.uri)
+        produceMessage(pageRevetActionTopic, data.meta.domain, data.user, data.bot, data.meta.uri)
     }
 
 };
