@@ -113,36 +113,11 @@ public class Main {
                         botsNonBotsStringLongTopics, languagesStringStringTopics, languagesStringLongTopics, choose);
                 choose = in.nextInt();
             }
-            Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    stringStringConsumer.close();
-                }
-            }));
-            Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    stringLongConsumer.close();
-                }
-            }));
-            Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    botsNonBotsStringLongConsumer.close();
-                }
-            }));
-            Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    botsNonBotsStringStringConsumer.close();
-                }
-            }));
-            Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    languagesStringStringConsumer.close();
-                }
-            }));
+            Runtime.getRuntime().addShutdownHook(new Thread(stringStringConsumer::close));
+            Runtime.getRuntime().addShutdownHook(new Thread(stringLongConsumer::close));
+            Runtime.getRuntime().addShutdownHook(new Thread(botsNonBotsStringLongConsumer::close));
+            Runtime.getRuntime().addShutdownHook(new Thread(botsNonBotsStringStringConsumer::close));
+            Runtime.getRuntime().addShutdownHook(new Thread(languagesStringStringConsumer::close));
             service.shutdown();
 
             System.out.println("Bye Bye");
@@ -250,16 +225,10 @@ public class Main {
                 break;
             case 26:
                 System.out.println("Bots vs non-bots comparison: \n");
-                // TODO: fixme! show mapping without any calc
                 System.out.println("Most active human users:");
-                botsNonBotsStringStringTopicStatus.get("user-activities-none-bots-count").getKeyValueMapper().forEach((s, aLong) -> {
-                    System.out.println("User: " + s + ", Events: " + aLong);
-                });
+                botsNonBotsStringStringTopicStatus.get("user-activities-none-bots-count");
                 System.out.println("\nMost active bots:");
-                botsNonBotsStringStringTopicStatus.get("user-activities-bots-count").getKeyValueMapper().forEach((s, aLong) -> {
-                    System.out.println("Bot: " + s + ", Events: " + aLong);
-                });
-                // TODO: fixme! show mapping without any calc
+                botsNonBotsStringStringTopicStatus.get("user-activities-bots-count");
                 printDataAndCalculateRatio("\nPages activities by users or bots ratio",
                         (long) botsNonBotsStringStringTopicStatus.get("page-activities-none-bots-count").getKeyValueMapper().size(),
                         (long) botsNonBotsStringStringTopicStatus.get("page-activities-bots-count").getKeyValueMapper().size());
