@@ -118,58 +118,58 @@ public class Main {
                 System.out.println("most active users for last hour are: \n" + topicsToStatus.get("user-activities-hourly-count"));
                 break;
             case 8:
-                System.out.println("most active pages are: \n" + topicsToStatus.get("page-activities-count"));
+                System.out.println("Number of activities per page daily is: \n" + topicsToStatus.get("page-activities-daily-count"));
                 break;
             case 9:
-                System.out.println("most active pages are: \n" + topicsToStatus.get("page-activities-count"));
+                System.out.println("top activities by user daily" + topicsToStatus.get("user-activities-daily-count"));
                 break;
             case 10:
                 System.out.println("most active pages last week are: \n" + topicsToStatus.get("page-activities-weekly-count"));
                 break;
             case 11:
-                System.out.println("most active pages are: \n" + topicsToStatus.get("page-activities-count"));
+                System.out.println("Most active users weekly: \n" + topicsToStatus.get("user-activities-weekly-count"));
                 break;
             case 12:
-                System.out.println("most active pages are: \n" + topicsToStatus.get("page-activities-count"));
+                System.out.println("Most active pages monthly are: \n" + topicsToStatus.get("page-activities-monthly-count"));
                 break;
             case 13:
                 System.out.println("most active users monthly are: \n" + topicsToStatus.get("user-activities-monthly-count"));
                 break;
             case 14:
-                System.out.println("most active pages are: \n" + topicsToStatus.get("page-activities-count"));
+                System.out.println("Number of pages created last hour: \n" + stringLongTopicStatus.get("page-creation-hourly-count").getCounter());
                 break;
             case 15:
-                System.out.println("most active pages are: \n" + topicsToStatus.get("page-activities-count"));
+                System.out.println("Number of revert events in last hour is: \n" + stringLongTopicStatus.get("page-revert-action-hourly-count").getCounter());
                 break;
             case 16:
-                System.out.println("most active pages are: \n" + topicsToStatus.get("page-activities-count"));
+                System.out.println("Number of update events in last hour: \n" + stringLongTopicStatus.get("page-update-hourly-count").getCounter());
                 break;
             case 17:
-                System.out.println("most active pages are: \n" + topicsToStatus.get("page-activities-count"));
+                System.out.println("Number of page creation events daily is: \n" + stringLongTopicStatus.get("page-creation-daily-count").getCounter());
                 break;
             case 18:
-                System.out.println("most active pages are: \n" + topicsToStatus.get("page-activities-count"));
+                System.out.println("Number of revert events daily is: \n" + stringLongTopicStatus.get("page-revert-action-daily-count").getCounter());
                 break;
             case 19:
-                System.out.println("most active pages are: \n" + topicsToStatus.get("page-activities-count"));
+                System.out.println("Most updated pages daily are: \n" + stringLongTopicStatus.get("page-update-daily-count").getCounter());
                 break;
             case 20:
-                System.out.println("most active pages are: \n" + topicsToStatus.get("page-activities-count"));
+                System.out.println("Number of page creation events last week: \n" + stringLongTopicStatus.get("page-creation-weekly-count").getCounter());
                 break;
             case 21:
-                System.out.println("most active pages are: \n" + topicsToStatus.get("page-activities-count"));
+                System.out.println("Number of revert events weekly: \n" + stringLongTopicStatus.get("page-revert-action-weekly-count").getCounter());
                 break;
             case 22:
                 System.out.println("number of update events in passed week: \n" + stringLongTopicStatus.get("page-update-weekly-count").getCounter());
                 break;
             case 23:
-                System.out.println("most active pages are: \n" + topicsToStatus.get("page-activities-count"));
+                System.out.println("Number of creation events in passed month: \n" + stringLongTopicStatus.get("page-creation-monthly-count").getCounter());
                 break;
             case 24:
-                System.out.println("most active pages are: \n" + topicsToStatus.get("page-activities-count"));
+                System.out.println("Number of revert pages monthly: \n" + stringLongTopicStatus.get("page-revert-action-monthly-count").getCounter());
                 break;
             case 25:
-                System.out.println("most active pages are: \n" + topicsToStatus.get("page-activities-count"));
+                System.out.println("Number of update events in passed month: \n" + stringLongTopicStatus.get("page-update-monthly-count").getCounter());
                 break;
             default:
                 System.out.println("Unknown option.. please try again...");
@@ -179,7 +179,7 @@ public class Main {
     private static void printGreeting() {
         System.out.println("===================================================");
         System.out.println("Hello user! this is our super statistics system");
-        System.out.println("Press 1 for total pages count");
+        System.out.println("Press 1 for total pages creation count");
         System.out.println("Press 2 for total pages changes count");
         System.out.println("Press 3 for total pages revert count");
         System.out.println("Press 4 for most active users");
