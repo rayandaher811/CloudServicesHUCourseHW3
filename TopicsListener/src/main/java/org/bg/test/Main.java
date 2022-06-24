@@ -113,36 +113,11 @@ public class Main {
                         botsNonBotsStringLongTopics, languagesStringStringTopics, languagesStringLongTopics, choose);
                 choose = in.nextInt();
             }
-            Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    stringStringConsumer.close();
-                }
-            }));
-            Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    stringLongConsumer.close();
-                }
-            }));
-            Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    botsNonBotsStringLongConsumer.close();
-                }
-            }));
-            Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    botsNonBotsStringStringConsumer.close();
-                }
-            }));
-            Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    languagesStringStringConsumer.close();
-                }
-            }));
+            Runtime.getRuntime().addShutdownHook(new Thread(stringStringConsumer::close));
+            Runtime.getRuntime().addShutdownHook(new Thread(stringLongConsumer::close));
+            Runtime.getRuntime().addShutdownHook(new Thread(botsNonBotsStringLongConsumer::close));
+            Runtime.getRuntime().addShutdownHook(new Thread(botsNonBotsStringStringConsumer::close));
+            Runtime.getRuntime().addShutdownHook(new Thread(languagesStringStringConsumer::close));
             service.shutdown();
 
             System.out.println("Bye Bye");
@@ -233,7 +208,6 @@ public class Main {
                 botsNonBotsStringStringTopicStatus.get("page-activities-none-bots-count").getKeyValueMapper().forEach((s, aLong) -> {
                     System.out.println("Page: " + s + ", Events: " + aLong);
                 });
-
                 printDataAndCalculateRatio("\nPage creations",
                         botsNonBotsStringLongTopicStatus.get("page-creation-none-bots-count").getCounter(),
                         botsNonBotsStringLongTopicStatus.get("page-creation-bots-count").getCounter());
