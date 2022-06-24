@@ -111,7 +111,7 @@ public class BasicConsumeLoop<K extends Serializable, V extends Serializable> im
                             System.out.println("Received message: (" + record.key() + ", " + record.value() + ") at offset " + record.offset());
                         }
                     } else if (record.topic().equals("page-activities-language-count") ||
-                    record.topic().equals("user-activities-language-count")) {
+                            record.topic().equals("user-activities-language-count")) {
                         if (topicsToStatus.containsKey(record.topic())) {
                             topicsToStatus.get(record.topic()).addLanguageResult(record.topic(), (String) record.value());
                         } else {
@@ -119,7 +119,8 @@ public class BasicConsumeLoop<K extends Serializable, V extends Serializable> im
                             System.out.println("Received message: (" + record.key() + ", " + record.value() + ") at offset " + record.offset());
                         }
                     } else if (record.topic().equals("page-creation-language-count") ||
-                            record.topic().equals("page-revert-action-language-count")) {
+                            record.topic().equals("page-revert-action-language-count") ||
+                            record.topic().equals("page-update-language-count")) {
                         if (topicsToStatus.containsKey(record.topic())) {
                             topicsToStatus.get(record.topic()).addLanguageResult((String) record.key(), (Long) record.value());
                         } else {
@@ -127,10 +128,7 @@ public class BasicConsumeLoop<K extends Serializable, V extends Serializable> im
                             System.out.println("Received message: (" + record.key() + ", " + record.value() + ") at offset " + record.offset());
                         }
                     }
-
-                    sleep(50);
                 }
-
             }
 
             // `enable.auto.commit` set to true. coordinator automatically commits the offsets

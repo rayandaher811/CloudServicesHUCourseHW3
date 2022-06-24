@@ -53,6 +53,7 @@ public class TopicStatus {
     public void addLanguageResult(String language, Long value) {
         keyValueMapper.put(language, value);
     }
+
     public Long getCounter() {
         return counter;
     }
@@ -79,11 +80,11 @@ public class TopicStatus {
         return languageMapper;
     }
 
-    public String getLanguageMapperAsString() {
+    public String getLanguageMapperAsString(String type) {
         AtomicReference<String> res = new AtomicReference<>("");
         languageMapper.forEach((s, stringAmountEntries) -> {
             List<String> pagesList = stringAmountEntries.stream().map(stringAmountEntry -> stringAmountEntry.string).collect(Collectors.toList());
-            res.getAndSet(res.get() + "Language: " + s + ", pages: " + pagesList + "\n");
+            res.getAndSet(res.get() + "Language: " + s + ", " + type + ": " + pagesList + "\n");
         });
         return res.get();
     }

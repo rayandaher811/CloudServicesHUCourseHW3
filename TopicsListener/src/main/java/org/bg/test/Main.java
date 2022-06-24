@@ -78,12 +78,13 @@ public class Main {
         ConcurrentHashMap<String, TopicStatus> languagesStringLongTopics = new ConcurrentHashMap<>();
         languagesStringLongTopicNames.add("page-creation-language-count");    // for que 3.a + b
         languagesStringLongTopicNames.add("page-revert-action-language-count");
+        languagesStringLongTopicNames.add("page-update-language-count");
         languagesStringLongTopicNames.stream().forEach(s -> {
             languagesStringLongTopics.put(s, new TopicStatus(s));
         });
 
         try {
-            ExecutorService service = Executors.newFixedThreadPool(4);
+            ExecutorService service = Executors.newCachedThreadPool();
             final BasicConsumeLoop<String, String> stringStringConsumer =
                     new BasicConsumeLoop<>(BasicConsumeLoop.stringStringConsumerConfig(), stringStringTopicNames, stringStringTopics);
             final BasicConsumeLoop<String, Long> stringLongConsumer =
@@ -96,10 +97,11 @@ public class Main {
                     new BasicConsumeLoop<>(BasicConsumeLoop.stringStringConsumerConfig(), languagesStringStringTopicNames, languagesStringStringTopics);
             final BasicConsumeLoop<String, String> languagesStringLongConsumer =
                     new BasicConsumeLoop<>(BasicConsumeLoop.stringLongConsumerConfig(), languagesStringLongTopicNames, languagesStringLongTopics);
-//            service.execute(stringStringConsumer);
-//            service.execute(stringLongConsumer);
-//            service.execute(botsNonBotsStringStringConsumer);
-//            service.execute(botsNonBotsStringLongConsumer);
+
+            service.execute(stringStringConsumer);
+            service.execute(stringLongConsumer);
+            service.execute(botsNonBotsStringStringConsumer);
+            service.execute(botsNonBotsStringLongConsumer);
             service.execute(languagesStringStringConsumer);
             service.execute(languagesStringLongConsumer);
 
@@ -247,41 +249,45 @@ public class Main {
                 System.out.println("Number of update events in passed month: \n" + stringLongTopicStatus.get("page-update-monthly-count").getCounter());
                 break;
             case 26:
-                System.out.println("Bots vs non-bots comparison, in 5 categories: \n");
+                System.out.println("Bots vs non-bots comparison: \n");
                 // TODO: fixme! show mapping without any calc
-                printDataAndCalculateRatio("Most active users regular / bots",
-                        (long) botsNonBotsStringStringTopicStatus.get("user-activities-none-bots-count").getKeyValueMapper().size(),
-                        (long) botsNonBotsStringStringTopicStatus.get("user-activities-bots-count").getKeyValueMapper().size());
+                System.out.println("Most active human users:");
+                botsNonBotsStringStringTopicStatus.get("user-activities-none-bots-count").getKeyValueMapper().forEach((s, aLong) -> {
+                    System.out.println("User: " + s + ", Events: " + aLong);
+                });
+                System.out.println("\nMost active bots:");
+                botsNonBotsStringStringTopicStatus.get("user-activities-bots-count").getKeyValueMapper().forEach((s, aLong) -> {
+                    System.out.println("Bot: " + s + ", Events: " + aLong);
+                });
                 // TODO: fixme! show mapping without any calc
-                printDataAndCalculateRatio("Pages activities by users or bots ratio",
+                printDataAndCalculateRatio("\nPages activities by users or bots ratio",
                         (long) botsNonBotsStringStringTopicStatus.get("page-activities-none-bots-count").getKeyValueMapper().size(),
                         (long) botsNonBotsStringStringTopicStatus.get("page-activities-bots-count").getKeyValueMapper().size());
-                printDataAndCalculateRatio("Page creation statistics human / bot",
+                printDataAndCalculateRatio("\nPage creations",
                         botsNonBotsStringLongTopicStatus.get("page-creation-none-bots-count").getCounter(),
                         botsNonBotsStringLongTopicStatus.get("page-creation-bots-count").getCounter());
-                printDataAndCalculateRatio("Pages revert statistics human / bot",
+                printDataAndCalculateRatio("\nPages reverts",
                         botsNonBotsStringLongTopicStatus.get("page-revert-action-none-bots-count").getCounter(),
                         botsNonBotsStringLongTopicStatus.get("page-revert-action-bots-count").getCounter());
-                printDataAndCalculateRatio("Pages activities by users or bots ratio",
+                printDataAndCalculateRatio("\nPages changes",
                         botsNonBotsStringLongTopicStatus.get("page-update-none-bots-count").getCounter(),
                         botsNonBotsStringLongTopicStatus.get("page-update-bots-count").getCounter());
                 break;
             case 27:
-                System.out.println("Creation of pages by language: \n" );
                 System.out.println("Pages creation by languages:"); // 3.1.a
                 languagesStringLongTopicStatus.get("page-creation-language-count").getKeyValueMapper().forEach((s, aLong) -> {
                     System.out.println("Language: " + s + ", pages: " + aLong);
                 });
-                System.out.println("Changes in pages by language: " + languagesStringStringTopicStatus.get("page-activities-language-count").getLanguageMapperAsString()); // 3.1.b
-                languagesStringStringTopicStatus.get("page-activities-language-count").getKeyValueMapper().forEach((s, aLong) -> {
+                System.out.println("\nPage changes by language:"); // 3.1.b
+                languagesStringLongTopicStatus.get("page-update-language-count").getKeyValueMapper().forEach((s, aLong) -> {
                     System.out.println("Language: " + s + ", pages: " + aLong);
                 });
-                System.out.println("Pages revert by languages: "); // 3.1.c
+                System.out.println("\nReverts by languages:"); // 3.1.c
                 languagesStringLongTopicStatus.get("page-revert-action-language-count").getKeyValueMapper().forEach((s, aLong) -> {
                     System.out.println("Language: " + s + ", pages: " + aLong);
                 });
-                System.out.println("Most active users by languages: \n" + languagesStringStringTopicStatus.get("user-activities-language-count")); // 3.2
-                System.out.println("Most active pages by language: \n" + languagesStringStringTopicStatus.get("page-activities-language-count").getLanguageMapperAsString()); // 3.3
+                System.out.println("\nMost active users by languages: \n" + languagesStringStringTopicStatus.get("user-activities-language-count").getLanguageMapperAsString("Users")); // 3.2
+                System.out.println("\nMost active pages by language: \n" + languagesStringStringTopicStatus.get("page-activities-language-count").getLanguageMapperAsString("Pages")); // 3.3
                 break;
             default:
                 System.out.println("Unknown option.. please try again...");
@@ -290,21 +296,8 @@ public class Main {
 
     private static void printDataAndCalculateRatio(String eventName, Long regularUserEvents, Long botUserEvents) {
         Long sum = regularUserEvents + botUserEvents;
-        if (regularUserEvents == 0 && botUserEvents != 0) {
-            System.out.println("For event: " + eventName + ", total events: " + sum
-                    + ", human percentage: 0%, bot percentage: 100%");
-        } else if (regularUserEvents == 0 && botUserEvents == 0) {
-            System.out.println("For event: " + eventName + ", total events: " + sum
-                    + ", human percentage: 0%, bot percentage: 0%");
-        } else if (regularUserEvents != 0 && botUserEvents == 0) {
-            System.out.println("For event: " + eventName + ", total events: " + sum
-                    + ", human percentage: 100%, bot percentage: 0%");
-        } else {
-            // real calculation
-            System.out.println("For event: " + eventName + ", total events: " + sum
-                    + ", human percentage: " + ((double)regularUserEvents / sum) * 100 + "%, bot percentage: " + ((double)botUserEvents / sum) * 100 + "%");
-        }
-
+        System.out.println("For event: " + eventName + ", total events: " + sum
+                + ", human : " + regularUserEvents + ", bot: " + botUserEvents);
     }
 
     private static void printGreeting() {
