@@ -49,7 +49,7 @@ public class StreamsPipesRunner {
         // Windowed count topics
         final String pageUpdateCountTopic = "page-update-" + kafkaTopicsSuffix + "-count";
         final String pageCreationCountTopic = "page-creation-" + kafkaTopicsSuffix + "-count";
-        final String pageRevertActionCountTopic = "page-revert-action-" + kafkaTopicsSuffix + "-hour-count";
+        final String pageRevertActionCountTopic = "page-revert-action-" + kafkaTopicsSuffix + "-count";
         final String userActivitiesCountTopic = "user-activities-" + kafkaTopicsSuffix + "-count";
         final String pageActivitiesCountTopic = "page-activities-" + kafkaTopicsSuffix + "-count";
 

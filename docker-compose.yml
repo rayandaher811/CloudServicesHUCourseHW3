@@ -109,7 +109,8 @@ services:
       kafka-topics --create --if-not-exists --bootstrap-server kafka0:29092 --replication-factor 1 --partitions 1 --topic page-revert-action-language-count
       kafka-topics --create --if-not-exists --bootstrap-server kafka0:29092 --replication-factor 1 --partitions 1 --topic user-activities-language-count
       kafka-topics --create --if-not-exists --bootstrap-server kafka0:29092 --replication-factor 1 --partitions 1 --topic page-activities-language-count
-
+      kafka-topics --create --if-not-exists --bootstrap-server kafka0:29092 --replication-factor 1 --partitions 1 --topic page-revert-action-none-bots-count
+      kafka-topics --create --if-not-exists --bootstrap-server kafka0:29092 --replication-factor 1 --partitions 1 --topic page-revert-action-bots-count
       echo -e 'Successfully created the following topics:'
       kafka-topics --bootstrap-server kafka0:29092 --list
       "
