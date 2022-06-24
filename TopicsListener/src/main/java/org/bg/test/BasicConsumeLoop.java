@@ -83,8 +83,7 @@ public class BasicConsumeLoop<K extends Serializable, V extends Serializable> im
                             record.topic().equals("page-revert-action-bots-count") ||
                             record.topic().equals("page-revert-action-none-bots-count") ||
                             record.topic().equals("page-update-bots-count") ||
-                            record.topic().equals("page-update-none-bots-count")
-                    ) {
+                            record.topic().equals("page-update-none-bots-count")) {
                         if (topicsToStatus.containsKey(record.topic())) {
                             topicsToStatus.get(record.topic()).setCounter(record.topic(), (Long) record.value());
                         } else {
@@ -104,24 +103,39 @@ public class BasicConsumeLoop<K extends Serializable, V extends Serializable> im
                             record.topic().equals("user-activities-bots-count") ||
                             record.topic().equals("user-activities-none-bots-count") ||
                             record.topic().equals("page-activities-bots-count") ||
-                            record.topic().equals("page-activities-none-bots-count")
-                    ) {
+                            record.topic().equals("page-activities-none-bots-count")) {
                         if (topicsToStatus.containsKey(record.topic())) {
                             topicsToStatus.get(record.topic()).addResult(record.topic(), (String) record.value());
                         } else {
                             System.out.println("BG error!!");
                             System.out.println("Received message: (" + record.key() + ", " + record.value() + ") at offset " + record.offset());
                         }
+                    } else if (record.topic().equals("page-activities-language-count") ||
+                    record.topic().equals("user-activities-language-count")) {
+                        if (topicsToStatus.containsKey(record.topic())) {
+                            topicsToStatus.get(record.topic()).addLanguageResult(record.topic(), (String) record.value());
+                        } else {
+                            System.out.println("BG error!!");
+                            System.out.println("Received message: (" + record.key() + ", " + record.value() + ") at offset " + record.offset());
+                        }
+                    } else if (record.topic().equals("page-creation-language-count") ||
+                            record.topic().equals("page-revert-action-language-count")) {
+                        if (topicsToStatus.containsKey(record.topic())) {
+                            topicsToStatus.get(record.topic()).addLanguageResult((String) record.key(), (Long) record.value());
+                        } else {
+                            System.out.println("BG error!!");
+                            System.out.println("Received message: (" + record.key() + ", " + record.value() + ") at offset " + record.offset());
+                        }
                     }
+
                     sleep(50);
                 }
 
-
-                // `enable.auto.commit` set to true. coordinator automatically commits the offsets
-                // returned on the last poll(long) for all the subscribed list of topics and partitions
             }
-        } catch (
-                WakeupException e) {
+
+            // `enable.auto.commit` set to true. coordinator automatically commits the offsets
+            // returned on the last poll(long) for all the subscribed list of topics and partitions
+        } catch (WakeupException e) {
             // Ignore, we're closing
         } finally {
             consumer.close();

@@ -66,6 +66,22 @@ public class Main {
             botsNonBotsStringLongTopics.put(s, new TopicStatus(s));
         });
 
+        ConcurrentHashMap<String, TopicStatus> languagesStringStringTopics = new ConcurrentHashMap<>();
+        ArrayList<String> languagesStringStringTopicNames = new ArrayList<>();
+        languagesStringStringTopicNames.add("page-activities-language-count");    // for que 3.a + b
+        languagesStringStringTopicNames.add("user-activities-language-count");
+        languagesStringStringTopicNames.stream().forEach(s -> {
+            languagesStringStringTopics.put(s, new TopicStatus(s));
+        });
+
+        ArrayList<String> languagesStringLongTopicNames = new ArrayList<>();
+        ConcurrentHashMap<String, TopicStatus> languagesStringLongTopics = new ConcurrentHashMap<>();
+        languagesStringLongTopicNames.add("page-creation-language-count");    // for que 3.a + b
+        languagesStringLongTopicNames.add("page-revert-action-language-count");
+        languagesStringLongTopicNames.stream().forEach(s -> {
+            languagesStringLongTopics.put(s, new TopicStatus(s));
+        });
+
         try {
             ExecutorService service = Executors.newFixedThreadPool(4);
             final BasicConsumeLoop<String, String> stringStringConsumer =
@@ -76,16 +92,23 @@ public class Main {
                     new BasicConsumeLoop<>(BasicConsumeLoop.stringStringConsumerConfig(), botsNonBotsStringStringTopicNames, botsNonBotsStringStringTopics);
             final BasicConsumeLoop<String, Long> botsNonBotsStringLongConsumer =
                     new BasicConsumeLoop<>(BasicConsumeLoop.stringLongConsumerConfig(), botsNonBotsStringLongTopicNames, botsNonBotsStringLongTopics);
-            service.execute(stringStringConsumer);
-            service.execute(stringLongConsumer);
-            service.execute(botsNonBotsStringStringConsumer);
-            service.execute(botsNonBotsStringLongConsumer);
+            final BasicConsumeLoop<String, String> languagesStringStringConsumer =
+                    new BasicConsumeLoop<>(BasicConsumeLoop.stringStringConsumerConfig(), languagesStringStringTopicNames, languagesStringStringTopics);
+            final BasicConsumeLoop<String, String> languagesStringLongConsumer =
+                    new BasicConsumeLoop<>(BasicConsumeLoop.stringLongConsumerConfig(), languagesStringLongTopicNames, languagesStringLongTopics);
+//            service.execute(stringStringConsumer);
+//            service.execute(stringLongConsumer);
+//            service.execute(botsNonBotsStringStringConsumer);
+//            service.execute(botsNonBotsStringLongConsumer);
+            service.execute(languagesStringStringConsumer);
+            service.execute(languagesStringLongConsumer);
 
             printGreeting();
             Scanner in = new Scanner(System.in);
             int choose = in.nextInt();
             while (choose != 99) {
-                handleUserRequest(stringStringTopics, stringLongTopics, botsNonBotsStringStringTopics, botsNonBotsStringLongTopics, choose);
+                handleUserRequest(stringStringTopics, stringLongTopics, botsNonBotsStringStringTopics,
+                        botsNonBotsStringLongTopics, languagesStringStringTopics, languagesStringLongTopics, choose);
                 choose = in.nextInt();
             }
             Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
@@ -112,6 +135,12 @@ public class Main {
                     botsNonBotsStringStringConsumer.close();
                 }
             }));
+            Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    languagesStringStringConsumer.close();
+                }
+            }));
             service.shutdown();
 
             System.out.println("Bye Bye");
@@ -126,9 +155,11 @@ public class Main {
                                           ConcurrentHashMap<String, TopicStatus> stringLongTopicStatus,
                                           ConcurrentHashMap<String, TopicStatus> botsNonBotsStringStringTopicStatus,
                                           ConcurrentHashMap<String, TopicStatus> botsNonBotsStringLongTopicStatus,
+                                          ConcurrentHashMap<String, TopicStatus> languagesStringStringTopicStatus,
+                                          ConcurrentHashMap<String, TopicStatus> languagesStringLongTopicStatus,
                                           int choose) {
         printMenuAndExecuteCommand(stringStringTopicStatus, stringLongTopicStatus, botsNonBotsStringStringTopicStatus,
-                botsNonBotsStringLongTopicStatus, choose);
+                botsNonBotsStringLongTopicStatus, languagesStringStringTopicStatus, languagesStringLongTopicStatus, choose);
         printGreeting();
     }
 
@@ -136,6 +167,8 @@ public class Main {
                                                    ConcurrentHashMap<String, TopicStatus> stringLongTopicStatus,
                                                    ConcurrentHashMap<String, TopicStatus> botsNonBotsStringStringTopicStatus,
                                                    ConcurrentHashMap<String, TopicStatus> botsNonBotsStringLongTopicStatus,
+                                                   ConcurrentHashMap<String, TopicStatus> languagesStringStringTopicStatus,
+                                                   ConcurrentHashMap<String, TopicStatus> languagesStringLongTopicStatus,
                                                    int choose) {
         switch (choose) {
             case 1:
@@ -215,9 +248,11 @@ public class Main {
                 break;
             case 26:
                 System.out.println("Bots vs non-bots comparison, in 5 categories: \n");
+                // TODO: fixme! show mapping without any calc
                 printDataAndCalculateRatio("Most active users regular / bots",
                         (long) botsNonBotsStringStringTopicStatus.get("user-activities-none-bots-count").getKeyValueMapper().size(),
                         (long) botsNonBotsStringStringTopicStatus.get("user-activities-bots-count").getKeyValueMapper().size());
+                // TODO: fixme! show mapping without any calc
                 printDataAndCalculateRatio("Pages activities by users or bots ratio",
                         (long) botsNonBotsStringStringTopicStatus.get("page-activities-none-bots-count").getKeyValueMapper().size(),
                         (long) botsNonBotsStringStringTopicStatus.get("page-activities-bots-count").getKeyValueMapper().size());
@@ -230,6 +265,23 @@ public class Main {
                 printDataAndCalculateRatio("Pages activities by users or bots ratio",
                         botsNonBotsStringLongTopicStatus.get("page-update-none-bots-count").getCounter(),
                         botsNonBotsStringLongTopicStatus.get("page-update-bots-count").getCounter());
+                break;
+            case 27:
+                System.out.println("Creation of pages by language: \n" );
+                System.out.println("Pages creation by languages:"); // 3.1.a
+                languagesStringLongTopicStatus.get("page-creation-language-count").getKeyValueMapper().forEach((s, aLong) -> {
+                    System.out.println("Language: " + s + ", pages: " + aLong);
+                });
+                System.out.println("Changes in pages by language: " + languagesStringStringTopicStatus.get("page-activities-language-count").getLanguageMapperAsString()); // 3.1.b
+                languagesStringStringTopicStatus.get("page-activities-language-count").getKeyValueMapper().forEach((s, aLong) -> {
+                    System.out.println("Language: " + s + ", pages: " + aLong);
+                });
+                System.out.println("Pages revert by languages: "); // 3.1.c
+                languagesStringLongTopicStatus.get("page-revert-action-language-count").getKeyValueMapper().forEach((s, aLong) -> {
+                    System.out.println("Language: " + s + ", pages: " + aLong);
+                });
+                System.out.println("Most active users by languages: \n" + languagesStringStringTopicStatus.get("user-activities-language-count")); // 3.2
+                System.out.println("Most active pages by language: \n" + languagesStringStringTopicStatus.get("page-activities-language-count").getLanguageMapperAsString()); // 3.3
                 break;
             default:
                 System.out.println("Unknown option.. please try again...");
@@ -284,6 +336,7 @@ public class Main {
         System.out.println("Press 24 for page revert action monthly count");
         System.out.println("Press 25 for page update monthly count");
         System.out.println("Press 26 for bots vs. real users comparison");
+        System.out.println("Press 27 for language queries");
         System.out.println("Enter 99 to stop and exit!");
         System.out.println("===================================================");
     }
