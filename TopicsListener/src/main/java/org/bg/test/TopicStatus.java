@@ -4,8 +4,6 @@ import com.google.gson.Gson;
 
 import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
 
 public class TopicStatus {
     private String query;
@@ -64,28 +62,24 @@ public class TopicStatus {
 
     @Override
     public String toString() {
-        AtomicReference<String> valueToPrint = new AtomicReference<>("Query Status {\n" +
-                "query='" + query + '\'');
+        StringBuilder stringBuilder = new StringBuilder();
         synchronized (keyValueMapper) {
-            keyValueMapper.forEach((s, aLong) -> {
-                valueToPrint.getAndSet(valueToPrint.get() + "Key: " + s + ", value: " + aLong + "\n");
-            });
+            keyValueMapper.forEach((s, aLong) -> stringBuilder.append(s + ": " + aLong + "\n"));
         }
-        valueToPrint.getAndSet(valueToPrint.get() + "}");
+        stringBuilder.append("\n\n");
 
-        return valueToPrint.get();
+        return stringBuilder.toString();
     }
 
-    public HashMap<String, List<StringAmountEntry>> getLanguageMapper() {
-        return languageMapper;
-    }
-
-    public String getLanguageMapperAsString(String type) {
-        AtomicReference<String> res = new AtomicReference<>("");
-        languageMapper.forEach((s, stringAmountEntries) -> {
-            List<String> pagesList = stringAmountEntries.stream().map(stringAmountEntry -> stringAmountEntry.string).collect(Collectors.toList());
-            res.getAndSet(res.get() + "Language: " + s + ", " + type + ": " + pagesList + "\n");
+    public String getLanguageMapperAsString() {
+        StringBuilder stringBuilder = new StringBuilder();
+        languageMapper.forEach((s, languageAmountEntry) -> {
+            stringBuilder.append("Language: " + s + "\n");
+            languageAmountEntry.forEach(stringAmountEntry -> stringBuilder.append(stringAmountEntry.string + ": " + stringAmountEntry.amount + "\n"));
+            stringBuilder.append("\n\n");
         });
-        return res.get();
+        stringBuilder.append("\n\n");
+
+        return stringBuilder.toString();
     }
 }
