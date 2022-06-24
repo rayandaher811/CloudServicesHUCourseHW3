@@ -13,7 +13,6 @@ public class Main {
         ArrayList<String> stringStringTopicNames = new ArrayList<>();
         stringStringTopicNames.add("user-activities-count");       // for que 2
         stringStringTopicNames.add("page-activities-count");       // for que 3
-
         stringStringTopicNames.add("page-activities-hourly-count");     // for que 1 low
         stringStringTopicNames.add("user-activities-hourly-count");     // for que 1 low
         stringStringTopicNames.add("page-activities-daily-count");      // for que 1 low
@@ -25,12 +24,10 @@ public class Main {
         stringStringTopicNames.stream().forEach(s -> {
             stringStringTopics.put(s, new TopicStatus(s));
         });
-
         ArrayList<String> stringLongTopicNames = new ArrayList<>();
         stringLongTopicNames.add("page-creation-count");         // for que 1.a
         stringLongTopicNames.add("page-update-count");           // for que 1.b
         stringLongTopicNames.add("page-revert-action-count");    // for que 1.c
-
         stringLongTopicNames.add("page-creation-hourly-count");         // for que 1 low
         stringLongTopicNames.add("page-revert-action-hourly-count");    // for que 1 low
         stringLongTopicNames.add("page-update-hourly-count");           // for que 1 low
@@ -43,37 +40,76 @@ public class Main {
         stringLongTopicNames.add("page-creation-monthly-count");        // for que 1 low
         stringLongTopicNames.add("page-revert-action-monthly-count");   // for que 1 low
         stringLongTopicNames.add("page-update-monthly-count");          // for que 1 low
-
         stringLongTopicNames.stream().forEach(s -> {
             stringLongTopics.put(s, new TopicStatus(s));
         });
 
+        ConcurrentHashMap<String, TopicStatus> botsNonBotsStringLongTopics = new ConcurrentHashMap<>();
+        ConcurrentHashMap<String, TopicStatus> botsNonBotsStringStringTopics = new ConcurrentHashMap<>();
+        ArrayList<String> botsNonBotsStringStringTopicNames = new ArrayList<>();
+        botsNonBotsStringStringTopicNames.add("user-activities-bots-count");        // for que 2.a
+        botsNonBotsStringStringTopicNames.add("user-activities-none-bots-count");   // for que 2.a
+        botsNonBotsStringStringTopicNames.add("page-activities-bots-count");        // for que 2.a
+        botsNonBotsStringStringTopicNames.add("page-activities-none-bots-count");   // for que 2.a
+        botsNonBotsStringStringTopicNames.stream().forEach(s -> {
+            botsNonBotsStringStringTopics.put(s, new TopicStatus(s));
+        });
+
+        ArrayList<String> botsNonBotsStringLongTopicNames = new ArrayList<>();
+        botsNonBotsStringLongTopicNames.add("page-creation-bots-count");            // for que 2.a
+        botsNonBotsStringLongTopicNames.add("page-creation-none-bots-count");       // for que 2.a
+        botsNonBotsStringLongTopicNames.add("page-revert-action-bots-count");       // for que 2.a
+        botsNonBotsStringLongTopicNames.add("page-revert-action-none-bots-count");  // for que 2.a
+        botsNonBotsStringLongTopicNames.add("page-update-bots-count");              // for que 2.a
+        botsNonBotsStringLongTopicNames.add("page-update-none-bots-count");         // for que 2.a
+        botsNonBotsStringLongTopicNames.stream().forEach(s -> {
+            botsNonBotsStringLongTopics.put(s, new TopicStatus(s));
+        });
+
         try {
-            ExecutorService service = Executors.newFixedThreadPool(2);
-            final BasicConsumeLoop<String, String> stringStringConsumer =
-                    new BasicConsumeLoop<>(BasicConsumeLoop.stringStringConsumerConfig(), stringStringTopicNames, stringStringTopics);
-            final BasicConsumeLoop<String, Long> stringLongConsumer =
-                    new BasicConsumeLoop<>(BasicConsumeLoop.stringLongConsumerConfig(), stringLongTopicNames, stringLongTopics);
-            service.execute(stringStringConsumer);
-            service.execute(stringLongConsumer);
+            ExecutorService service = Executors.newFixedThreadPool(4);
+//            final BasicConsumeLoop<String, String> stringStringConsumer =
+//                    new BasicConsumeLoop<>(BasicConsumeLoop.stringStringConsumerConfig(), stringStringTopicNames, stringStringTopics);
+//            final BasicConsumeLoop<String, Long> stringLongConsumer =
+//                    new BasicConsumeLoop<>(BasicConsumeLoop.stringLongConsumerConfig(), stringLongTopicNames, stringLongTopics);
+            final BasicConsumeLoop<String, String> botsNonBotsStringStringConsumer =
+                    new BasicConsumeLoop<>(BasicConsumeLoop.stringStringConsumerConfig(), botsNonBotsStringStringTopicNames, botsNonBotsStringStringTopics);
+            final BasicConsumeLoop<String, Long> botsNonBotsStringLongConsumer =
+                    new BasicConsumeLoop<>(BasicConsumeLoop.stringLongConsumerConfig(), botsNonBotsStringLongTopicNames, botsNonBotsStringLongTopics);
+//            service.execute(stringStringConsumer);
+//            service.execute(stringLongConsumer);
+            service.execute(botsNonBotsStringStringConsumer);
+            service.execute(botsNonBotsStringLongConsumer);
 
             printGreeting();
             Scanner in = new Scanner(System.in);
             int choose = in.nextInt();
             while (choose != 99) {
-                handleUserRequest(stringStringTopics, stringLongTopics, choose);
+                handleUserRequest(stringStringTopics, stringLongTopics, botsNonBotsStringStringTopics, botsNonBotsStringLongTopics, choose);
                 choose = in.nextInt();
             }
+//            Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+//                @Override
+//                public void run() {
+//                    stringStringConsumer.close();
+//                }
+//            }));
+//            Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+//                @Override
+//                public void run() {
+//                    stringLongConsumer.close();
+//                }
+//            }));
             Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    stringStringConsumer.close();
+                    botsNonBotsStringLongConsumer.close();
                 }
             }));
             Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    stringLongConsumer.close();
+                    botsNonBotsStringStringConsumer.close();
                 }
             }));
             service.shutdown();
@@ -87,13 +123,19 @@ public class Main {
     }
 
     private static void handleUserRequest(ConcurrentHashMap<String, TopicStatus> stringStringTopicStatus,
-                                          ConcurrentHashMap<String, TopicStatus> stringLongTopicStatus, int choose) {
-        printMenuAndExecuteCommand(stringStringTopicStatus, stringLongTopicStatus, choose);
+                                          ConcurrentHashMap<String, TopicStatus> stringLongTopicStatus,
+                                          ConcurrentHashMap<String, TopicStatus> botsNonBotsStringStringTopicStatus,
+                                          ConcurrentHashMap<String, TopicStatus> botsNonBotsStringLongTopicStatus,
+                                          int choose) {
+        printMenuAndExecuteCommand(stringStringTopicStatus, stringLongTopicStatus, botsNonBotsStringStringTopicStatus,
+                botsNonBotsStringLongTopicStatus, choose);
         printGreeting();
     }
 
     private static void printMenuAndExecuteCommand(ConcurrentHashMap<String, TopicStatus> topicsToStatus,
                                                    ConcurrentHashMap<String, TopicStatus> stringLongTopicStatus,
+                                                   ConcurrentHashMap<String, TopicStatus> botsNonBotsStringStringTopicStatus,
+                                                   ConcurrentHashMap<String, TopicStatus> botsNonBotsStringLongTopicStatus,
                                                    int choose) {
         switch (choose) {
             case 1:
@@ -171,9 +213,46 @@ public class Main {
             case 25:
                 System.out.println("Number of update events in passed month: \n" + stringLongTopicStatus.get("page-update-monthly-count").getCounter());
                 break;
+            case 26:
+                System.out.println("Bots vs non-bots comparison, in 5 categories: \n");
+                printDataAndCalculateRatio("Most active users regular / bots",
+                        (long) botsNonBotsStringStringTopicStatus.get("user-activities-none-bots-count").getKeyValueMapper().size(),
+                        (long) botsNonBotsStringStringTopicStatus.get("user-activities-bots-count").getKeyValueMapper().size());
+                printDataAndCalculateRatio("Pages activities by users or bots ratio",
+                        (long) botsNonBotsStringStringTopicStatus.get("page-activities-none-bots-count").getKeyValueMapper().size(),
+                        (long) botsNonBotsStringStringTopicStatus.get("page-activities-bots-count").getKeyValueMapper().size());
+                printDataAndCalculateRatio("Page creation statistics human / bot",
+                        botsNonBotsStringLongTopicStatus.get("page-creation-none-bots-count").getCounter(),
+                        botsNonBotsStringLongTopicStatus.get("page-creation-bots-count").getCounter());
+                printDataAndCalculateRatio("Pages revert statistics human / bot",
+                        botsNonBotsStringLongTopicStatus.get("page-revert-action-none-bots-count").getCounter(),
+                        botsNonBotsStringLongTopicStatus.get("page-revert-action-bots-count").getCounter());
+                printDataAndCalculateRatio("Pages activities by users or bots ratio",
+                        botsNonBotsStringLongTopicStatus.get("page-update-none-bots-count").getCounter(),
+                        botsNonBotsStringLongTopicStatus.get("page-update-bots-count").getCounter());
+                break;
             default:
                 System.out.println("Unknown option.. please try again...");
         }
+    }
+
+    private static void printDataAndCalculateRatio(String eventName, Long regularUserEvents, Long botUserEvents) {
+        Long sum = regularUserEvents + botUserEvents;
+        if (regularUserEvents == 0 && botUserEvents != 0) {
+            System.out.println("For event: " + eventName + ", total events: " + sum
+                    + ", human percentage: 0%, bot percentage: 100%");
+        } else if (regularUserEvents == 0 && botUserEvents == 0) {
+            System.out.println("For event: " + eventName + ", total events: " + sum
+                    + ", human percentage: 0%, bot percentage: 0%");
+        } else if (regularUserEvents != 0 && botUserEvents == 0) {
+            System.out.println("For event: " + eventName + ", total events: " + sum
+                    + ", human percentage: 100%, bot percentage: 0%");
+        } else {
+            // real calculation
+            System.out.println("For event: " + eventName + ", total events: " + sum
+                    + ", human percentage: " + ((double)regularUserEvents / sum) * 100 + "%, bot percentage: " + ((double)botUserEvents / sum) * 100 + "%");
+        }
+
     }
 
     private static void printGreeting() {
@@ -204,6 +283,7 @@ public class Main {
         System.out.println("Press 23 for page creation monthly count");
         System.out.println("Press 24 for page revert action monthly count");
         System.out.println("Press 25 for page update monthly count");
+        System.out.println("Press 26 for bots vs. real users comparison");
         System.out.println("Enter 99 to stop and exit!");
         System.out.println("===================================================");
     }

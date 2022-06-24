@@ -63,40 +63,48 @@ public class BasicConsumeLoop<K extends Serializable, V extends Serializable> im
                 for (ConsumerRecord<K, V> record : records) {
                     logger.info("C : {}, Record received partition : {}, key : {}, value : {}, offset : {}",
                             clientId, record.partition(), record.key(), record.value(), record.offset());
-                    if (
-                            record.topic().equals("page-creation-count") ||
-                                    record.topic().equals("page-revert-action-count") ||
-                                    record.topic().equals("page-update-count") ||
-                                    record.topic().equals("page-creation-hourly-count") ||
-                                    record.topic().equals("page-revert-action-hourly-count") ||
-                                    record.topic().equals("page-update-hourly-count") ||
-                                    record.topic().equals("page-creation-daily-count") ||
-                                    record.topic().equals("page-revert-action-daily-count") ||
-                                    record.topic().equals("page-update-daily-count") ||
-                                    record.topic().equals("page-creation-weekly-count") ||
-                                    record.topic().equals("page-revert-action-weekly-count") ||
-                                    record.topic().equals("page-update-weekly-count") ||
-                                    record.topic().equals("page-creation-monthly-count") ||
-                                    record.topic().equals("page-revert-action-monthly-count") ||
-                                    record.topic().equals("page-update-monthly-count")
+                    if (record.topic().equals("page-creation-count") ||
+                            record.topic().equals("page-revert-action-count") ||
+                            record.topic().equals("page-update-count") ||
+                            record.topic().equals("page-creation-hourly-count") ||
+                            record.topic().equals("page-revert-action-hourly-count") ||
+                            record.topic().equals("page-update-hourly-count") ||
+                            record.topic().equals("page-creation-daily-count") ||
+                            record.topic().equals("page-revert-action-daily-count") ||
+                            record.topic().equals("page-update-daily-count") ||
+                            record.topic().equals("page-creation-weekly-count") ||
+                            record.topic().equals("page-revert-action-weekly-count") ||
+                            record.topic().equals("page-update-weekly-count") ||
+                            record.topic().equals("page-creation-monthly-count") ||
+                            record.topic().equals("page-revert-action-monthly-count") ||
+                            record.topic().equals("page-update-monthly-count") ||
+                            record.topic().equals("page-creation-bots-count") ||
+                            record.topic().equals("page-creation-none-bots-count") ||
+                            record.topic().equals("page-revert-action-bots-count") ||
+                            record.topic().equals("page-revert-action-none-bots-count") ||
+                            record.topic().equals("page-update-bots-count") ||
+                            record.topic().equals("page-update-none-bots-count")
                     ) {
                         if (topicsToStatus.containsKey(record.topic())) {
-                            topicsToStatus.get(record.topic()).setCounter((Long) record.value());
+                            topicsToStatus.get(record.topic()).setCounter(record.topic(), (Long) record.value());
                         } else {
                             System.out.println("BG error!!");
                             System.out.println("Received message: (" + record.key() + ", " + record.value() + ") at offset " + record.offset());
                         }
-                    } else if (
-                            record.topic().equals("user-activities-count") ||
-                                record.topic().equals("page-activities-count") ||
-                                record.topic().equals("page-activities-hourly-count")  ||
-                                record.topic().equals("user-activities-hourly-count") ||
-                                record.topic().equals("page-activities-daily-count") ||
-                                record.topic().equals("user-activities-daily-count") ||
-                                record.topic().equals("page-activities-weekly-count") ||
-                                record.topic().equals("user-activities-weekly-count") ||
-                                record.topic().equals("page-activities-monthly-count") ||
-                                record.topic().equals("user-activities-monthly-count")
+                    } else if (record.topic().equals("user-activities-count") ||
+                            record.topic().equals("page-activities-count") ||
+                            record.topic().equals("page-activities-hourly-count") ||
+                            record.topic().equals("user-activities-hourly-count") ||
+                            record.topic().equals("page-activities-daily-count") ||
+                            record.topic().equals("user-activities-daily-count") ||
+                            record.topic().equals("page-activities-weekly-count") ||
+                            record.topic().equals("user-activities-weekly-count") ||
+                            record.topic().equals("page-activities-monthly-count") ||
+                            record.topic().equals("user-activities-monthly-count") ||
+                            record.topic().equals("user-activities-bots-count") ||
+                            record.topic().equals("user-activities-none-bots-count") ||
+                            record.topic().equals("page-activities-bots-count") ||
+                            record.topic().equals("page-activities-none-bots-count")
                     ) {
                         if (topicsToStatus.containsKey(record.topic())) {
                             topicsToStatus.get(record.topic()).addResult(record.topic(), (String) record.value());

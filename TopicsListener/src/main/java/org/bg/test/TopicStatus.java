@@ -19,7 +19,7 @@ public class TopicStatus {
         this.keyValueMapper = new HashMap<>();
     }
 
-    public void setCounter(Long counter) {
+    public void setCounter(String receivedTopicName, Long counter) {
         this.counter = counter;
     }
 
