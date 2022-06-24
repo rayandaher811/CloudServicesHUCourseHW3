@@ -68,16 +68,16 @@ public class Main {
 
         try {
             ExecutorService service = Executors.newFixedThreadPool(4);
-//            final BasicConsumeLoop<String, String> stringStringConsumer =
-//                    new BasicConsumeLoop<>(BasicConsumeLoop.stringStringConsumerConfig(), stringStringTopicNames, stringStringTopics);
-//            final BasicConsumeLoop<String, Long> stringLongConsumer =
-//                    new BasicConsumeLoop<>(BasicConsumeLoop.stringLongConsumerConfig(), stringLongTopicNames, stringLongTopics);
+            final BasicConsumeLoop<String, String> stringStringConsumer =
+                    new BasicConsumeLoop<>(BasicConsumeLoop.stringStringConsumerConfig(), stringStringTopicNames, stringStringTopics);
+            final BasicConsumeLoop<String, Long> stringLongConsumer =
+                    new BasicConsumeLoop<>(BasicConsumeLoop.stringLongConsumerConfig(), stringLongTopicNames, stringLongTopics);
             final BasicConsumeLoop<String, String> botsNonBotsStringStringConsumer =
                     new BasicConsumeLoop<>(BasicConsumeLoop.stringStringConsumerConfig(), botsNonBotsStringStringTopicNames, botsNonBotsStringStringTopics);
             final BasicConsumeLoop<String, Long> botsNonBotsStringLongConsumer =
                     new BasicConsumeLoop<>(BasicConsumeLoop.stringLongConsumerConfig(), botsNonBotsStringLongTopicNames, botsNonBotsStringLongTopics);
-//            service.execute(stringStringConsumer);
-//            service.execute(stringLongConsumer);
+            service.execute(stringStringConsumer);
+            service.execute(stringLongConsumer);
             service.execute(botsNonBotsStringStringConsumer);
             service.execute(botsNonBotsStringLongConsumer);
 
@@ -88,18 +88,18 @@ public class Main {
                 handleUserRequest(stringStringTopics, stringLongTopics, botsNonBotsStringStringTopics, botsNonBotsStringLongTopics, choose);
                 choose = in.nextInt();
             }
-//            Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-//                @Override
-//                public void run() {
-//                    stringStringConsumer.close();
-//                }
-//            }));
-//            Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-//                @Override
-//                public void run() {
-//                    stringLongConsumer.close();
-//                }
-//            }));
+            Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    stringStringConsumer.close();
+                }
+            }));
+            Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    stringLongConsumer.close();
+                }
+            }));
             Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
                 @Override
                 public void run() {
