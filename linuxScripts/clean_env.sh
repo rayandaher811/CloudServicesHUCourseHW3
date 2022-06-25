@@ -21,3 +21,5 @@ cd ../KafkaStreamsPipe/
 mvn -q clean
 git clean -xdf . >/dev/null 2>&1
 cd -
+
+rm -rf ../lib/
