@@ -1,4 +1,4 @@
-package io.confluent.examples.streams.enums;
+package org.test.kafka.streams.enums;
 
 public enum WindowDuration {
     hour,

@@ -1,4 +1,4 @@
-package io.confluent.examples.streams;
+package org.test.kafka.streams;
 
 public class WikiMessage {
     public WikiMessage() {

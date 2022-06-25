@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.confluent.examples.streams;
+package org.test.kafka.streams;
 
 import org.apache.kafka.streams.kstream.Predicate;
 

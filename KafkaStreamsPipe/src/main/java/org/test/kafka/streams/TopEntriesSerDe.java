@@ -1,6 +1,6 @@
-package io.confluent.examples.streams;
+package org.test.kafka.streams;
 
-import io.confluent.shaded.com.google.gson.Gson;
+import com.google.gson.Gson;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serializer;
@@ -36,7 +36,7 @@ public class TopEntriesSerDe implements Serde<TopEntries> {
 
         @Override
         public TopEntries deserialize(String s, byte[] bytes) {
-            if(bytes.length == 0) {
+            if (bytes.length == 0) {
                 return new TopEntries();
             }
             return gson.fromJson(new String(bytes, StandardCharsets.UTF_8), TopEntries.class);

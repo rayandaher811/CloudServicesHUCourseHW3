@@ -1,4 +1,4 @@
-package io.confluent.examples.streams;
+package org.test.kafka.streams;
 
 import java.io.Serializable;
 import java.util.ArrayList;

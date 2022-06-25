@@ -1,7 +1,7 @@
-package io.confluent.examples.streams;
+package org.test.kafka.streams;
 
+import com.google.gson.Gson;
 import io.confluent.common.utils.TestUtils;
-import io.confluent.shaded.com.google.gson.Gson;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.KeyValue;
