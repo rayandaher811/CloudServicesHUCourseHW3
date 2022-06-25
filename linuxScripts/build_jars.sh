@@ -1,5 +1,6 @@
 #!/bin/bash
 
+mkdir ../lib/
 # Copying jar of pipes
 cd ../KafkaStreamsPipe/
 mvn clean package
